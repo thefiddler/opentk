@@ -38,7 +38,9 @@ namespace OpenTK
     /// <summary>Provides information about the underlying OS and runtime.</summary>
     public static class Configuration
     {
-        static bool runningOnWindows, runningOnUnix, runningOnX11, runningOnMacOS, runningOnLinux, runningOnMono;
+        static bool runningOnWindows, runningOnUnix, runningOnX11, runningOnMacOS, runningOnLinux;
+        static bool runningOnMono, runningOnAndroid;
+        static bool? sdl2supported;
         volatile static bool initialized;
         readonly static object InitLock = new object();
 
@@ -79,7 +81,7 @@ namespace OpenTK
 
         #endregion
 
-        #region RunningOnSDL2
+        #region public static bool RunningOnSDL2
 
         /// <summary>
         /// Gets a System.Boolean indicating whether OpenTK is running on the SDL2 backend.
@@ -113,6 +115,15 @@ namespace OpenTK
         public static bool RunningOnMono { get { return runningOnMono; } }
 
         #endregion
+
+        #region public static bool RunningOnAndroid
+
+        public static bool RunningOnAndroid
+        {
+            get { return runningOnAndroid; }
+        }
+
+        #endregion 
 
         #region --- Private Methods ---
 
@@ -184,7 +195,8 @@ namespace OpenTK
                     }
                     else
                     {
-                        Debug.Print("SDL2 init failed with error: {0}", OpenTK.Platform.SDL2.SDL.SDL_GetError());
+                        var error = OpenTK.Platform.SDL2.SDL.SDL_GetError();
+                        Debug.Print("SDL2 init failed with error: {0}", error);
                     }
                 }
                 else
@@ -213,7 +225,11 @@ namespace OpenTK
         {
             get
             {
-                return DetectSdl2();
+                if (!sdl2supported.HasValue)
+                {
+                    sdl2supported = DetectSdl2();
+                }
+                return sdl2supported.Value;
             }
         }
 
@@ -271,9 +287,11 @@ namespace OpenTK
                     }
 
                     // Detect the Mono runtime (code taken from http://mono.wikia.com/wiki/Detecting_if_program_is_running_in_Mono).
-                    Type t = Type.GetType("Mono.Runtime");
-                    if (t != null)
+                    if (Type.GetType("Mono.Runtime") != null)
                         runningOnMono = true;
+
+                    if (Type.GetType("Mono.Android") != null)
+                        runningOnAndroid = true;
 
                     Debug.Print("Detected configuration: {0} / {1}",
                         RunningOnWindows ? "Windows" : RunningOnLinux ? "Linux" : RunningOnMacOS ? "MacOS" :

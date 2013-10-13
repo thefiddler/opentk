@@ -47,11 +47,16 @@ namespace OpenTK.Platform
 
         static Factory()
         {
-            if (Configuration.Sdl2Supported) Default = new SDL2.Sdl2Factory();
-            else if (Configuration.RunningOnWindows) Default = new Windows.WinFactory();
-            else if (Configuration.RunningOnMacOS) Default = new MacOS.MacOSFactory();
-            else if (Configuration.RunningOnX11) Default = new X11.X11Factory();
-            else Default = new UnsupportedPlatform();
+            if (Configuration.Sdl2Supported)
+                Default = new SDL2.Sdl2Factory();
+            else if (Configuration.RunningOnWindows)
+                Default = new Windows.WinFactory();
+            else if (Configuration.RunningOnMacOS)
+                Default = new MacOS.MacOSFactory();
+            else if (Configuration.RunningOnX11)
+                Default = new X11.X11Factory();
+            else
+                Default = new UnsupportedPlatform();
 
             if (Configuration.Sdl2Supported)
             {
