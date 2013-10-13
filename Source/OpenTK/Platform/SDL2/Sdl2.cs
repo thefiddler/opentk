@@ -27,7 +27,7 @@
 
 using System;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     partial class SDL
     {

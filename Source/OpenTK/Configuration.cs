@@ -185,17 +185,17 @@ namespace OpenTK
             // Detect whether SDL2 is supported
             try
             {
-                if (OpenTK.Platform.SDL2.SDL.SDL_WasInit(0) == 0)
+                if (OpenTK.Platform.Android.SDL.SDL_WasInit(0) == 0)
                 {
-                    var flags = OpenTK.Platform.SDL2.SDL.SDL_INIT_EVERYTHING;
-                    flags &= ~OpenTK.Platform.SDL2.SDL.SDL_INIT_AUDIO;
-                    if (OpenTK.Platform.SDL2.SDL.SDL_Init((uint)flags) == 0)
+                    var flags = OpenTK.Platform.Android.SDL.SDL_INIT_EVERYTHING;
+                    flags &= ~OpenTK.Platform.Android.SDL.SDL_INIT_AUDIO;
+                    if (OpenTK.Platform.Android.SDL.SDL_Init((uint)flags) == 0)
                     {
                         supported = true;
                     }
                     else
                     {
-                        var error = OpenTK.Platform.SDL2.SDL.SDL_GetError();
+                        var error = OpenTK.Platform.Android.SDL.SDL_GetError();
                         Debug.Print("SDL2 init failed with error: {0}", error);
                     }
                 }

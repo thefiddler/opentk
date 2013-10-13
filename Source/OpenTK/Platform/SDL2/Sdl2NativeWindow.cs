@@ -38,7 +38,7 @@ using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Input;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2NativeWindow : INativeWindow, IInputDriver
     {

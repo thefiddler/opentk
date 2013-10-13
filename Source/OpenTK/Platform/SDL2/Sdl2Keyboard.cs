@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenTK.Input;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2Keyboard : IKeyboardDriver2, IKeyboardDriver
     {

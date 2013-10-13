@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using OpenTK.Input;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2InputDriver : IInputDriver2, IInputDriver
     {

@@ -30,7 +30,7 @@ using System.Diagnostics;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2GraphicsContext : DesktopGraphicsContext
     {

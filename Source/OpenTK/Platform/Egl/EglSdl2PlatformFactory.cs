@@ -27,7 +27,7 @@
 
 using System;
 using OpenTK.Graphics;
-using OpenTK.Platform.SDL2;
+using OpenTK.Platform.Android;
 
 namespace OpenTK.Platform.Egl
 {

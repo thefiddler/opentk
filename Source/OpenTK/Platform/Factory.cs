@@ -48,7 +48,7 @@ namespace OpenTK.Platform
         static Factory()
         {
             if (Configuration.Sdl2Supported)
-                Default = new SDL2.Sdl2Factory();
+                Default = new OpenTK.Platform.Android.Sdl2Factory();
             else if (Configuration.RunningOnWindows)
                 Default = new Windows.WinFactory();
             else if (Configuration.RunningOnMacOS)

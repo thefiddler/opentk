@@ -30,7 +30,7 @@ using System.Diagnostics;
 using OpenTK.Graphics;
 using OpenTK.Input;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2Factory : IPlatformFactory
     {

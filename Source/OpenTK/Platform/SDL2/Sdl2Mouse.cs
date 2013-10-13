@@ -31,7 +31,7 @@ using System.Diagnostics;
 using System.Drawing;
 using OpenTK.Input;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2Mouse : IMouseDriver2, IMouseDriver
     {

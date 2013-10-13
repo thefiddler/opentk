@@ -28,7 +28,7 @@
 using System;
 using OpenTK.Graphics;
 
-namespace OpenTK.Platform.SDL2
+namespace OpenTK.Platform.Android
 {
     class Sdl2GraphicsMode : IGraphicsMode
     {

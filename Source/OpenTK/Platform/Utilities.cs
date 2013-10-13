@@ -271,8 +271,8 @@ namespace OpenTK.Platform
         /// <returns>A new IWindowInfo instance.</returns>
         public static IWindowInfo CreateSdl2WindowInfo(IntPtr windowHandle)
         {
-            return new OpenTK.Platform.SDL2.Sdl2WindowInfo(
-                SDL2.SDL.SDL_CreateWindowFrom(windowHandle), null);
+            return new OpenTK.Platform.Android.Sdl2WindowInfo(
+                OpenTK.Platform.Android.SDL.SDL_CreateWindowFrom(windowHandle), null);
         }
 
         #endregion
