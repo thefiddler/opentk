@@ -173,6 +173,15 @@ namespace OpenTK.Platform.Android
 
         #endregion
 
+        #region Public Members
+
+        public static ContextHandle GetCurrentContext()
+        {
+            return new ContextHandle(SDL.GL.GetCurrentContext());
+        }
+
+        #endregion
+
         #region GraphicsContextBase Members
 
         public override void SwapBuffers()
