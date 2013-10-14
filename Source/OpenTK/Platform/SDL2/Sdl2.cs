@@ -23,6 +23,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 //
+using System.Runtime.InteropServices;
+
+
 #endregion
 
 using System;
@@ -32,11 +35,11 @@ namespace OpenTK.Platform.Android
     partial class SDL
     {
 #if ANDROID
-        const string nativeLibName = "libSDL2.so";
+        internal const string nativeLibName = "libSDL2.so";
 #elif IPHONE
-        const string nativeLibName = "__Internal";
+        internal const string nativeLibName = "__Internal";
 #else
-        const string nativeLibName = "SDL2.dll";
+        internal const string nativeLibName = "SDL2.dll";
 #endif
 
         public readonly static object Sync = new object();
@@ -46,6 +49,27 @@ namespace OpenTK.Platform.Android
 		{
 			SDL.SDL_GetVersion(out Version);
 		}
+
+        public enum EventType : uint
+        {
+            /* Touch events */
+            FingerDown      = 0x700,
+            FingerUp,
+            FingerMotion,
+
+            /* Gesture events */
+            DollarGesture   = 0x800,
+            DollarRecord,
+            MultiGesture,
+        }
+
+        public const uint TouchMouseID = 0xffffffff;
+
+        public static class GL
+        {
+            [DllImport(SDL.nativeLibName, EntryPoint = "SDL_GL_GetCurrentContext")]
+            public static extern IntPtr GetCurrentContext();
+        }
     }
 }
 
