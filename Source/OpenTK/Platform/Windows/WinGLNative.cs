@@ -73,6 +73,7 @@ namespace OpenTK.Platform.Windows
         bool mouse_outside_window = true;
         bool invisible_since_creation; // Set by WindowsMessage.CREATE and consumed by Visible = true (calls BringWindowToFront).
         int suppress_resize; // Used in WindowBorder and WindowState in order to avoid rapid, consecutive resize events.
+        bool is_in_modal_loop; // set to true whenever we enter the modal resize/move event loop 
 
         Rectangle
             bounds = new Rectangle(),
@@ -123,12 +124,37 @@ namespace OpenTK.Platform.Windows
                 //        Move(this, EventArgs.Empty);
                 //};
 
+                int scale_width = width;
+                int scale_height = height;
+                int scale_x = x;
+                int scale_y = y;
+                if (Toolkit.Options.EnableHighResolution)
+                {
+                    // CreateWindow takes values in pixels.
+                    // According to the high-dpi guidelines,
+                    // we need to scale these values by the
+                    // current DPI.
+                    // Search MSDN for "How to Ensure That
+                    // Your Application Displays Properly on
+                    // High-DPI Displays"
+                    scale_width = ScaleX(width);
+                    scale_height = ScaleY(height);
+                    scale_x = ScaleX(x);
+                    scale_y = ScaleY(y);
+                }
+
                 // To avoid issues with Ati drivers on Windows 6+ with compositing enabled, the context will not be
                 // bound to the top-level window, but rather to a child window docked in the parent.
                 window = new WinWindowInfo(
-                    CreateWindow(x, y, width, height, title, options, device, IntPtr.Zero), null);
+                    CreateWindow(
+                        scale_x, scale_y, scale_width, scale_height,
+                        title, options, device, IntPtr.Zero),
+                    null);
                 child_window = new WinWindowInfo(
-                    CreateWindow(0, 0, ClientSize.Width, ClientSize.Height, title, options, device, window.Handle), window);
+                    CreateWindow(
+                        0, 0, ClientSize.Width, ClientSize.Height,
+                        title, options, device, window.Handle),
+                    window);
 
                 exists = true;
 
@@ -149,6 +175,68 @@ namespace OpenTK.Platform.Windows
         #endregion
 
         #region Private Members
+
+        #region Scale
+
+        enum ScaleDirection { X, Y }
+
+        // Scales a value according according
+        // to the DPI of the specified direction
+        static int Scale(int v, ScaleDirection direction)
+        {
+            IntPtr dc = Functions.GetDC(IntPtr.Zero);
+            if (dc != IntPtr.Zero)
+            {
+                int dpi = Functions.GetDeviceCaps(dc,
+                    direction == ScaleDirection.X ? DeviceCaps.LogPixelsX : DeviceCaps.LogPixelsY);
+                if (dpi > 0)
+                {
+                    float scale = dpi / 96.0f;
+                    v = (int)Math.Round(v * scale);
+                }
+                Functions.ReleaseDC(IntPtr.Zero, dc);
+            }
+            return v;
+        }
+
+        static int ScaleX(int x)
+        {
+            return Scale(x, ScaleDirection.X);
+        }
+        
+        static int ScaleY(int y)
+        {
+            return Scale(y, ScaleDirection.Y);
+        }
+
+        static int Unscale(int v, ScaleDirection direction)
+        {
+            IntPtr dc = Functions.GetDC(IntPtr.Zero);
+            if (dc != IntPtr.Zero)
+            {
+                int dpi = Functions.GetDeviceCaps(dc,
+                    direction == ScaleDirection.X ? DeviceCaps.LogPixelsX : DeviceCaps.LogPixelsY);
+                if (dpi > 0)
+                {
+                    float scale = dpi / 96.0f;
+                    v = (int)Math.Round(v / scale);
+                }
+                Functions.ReleaseDC(IntPtr.Zero, dc);
+            }
+            return v;
+        }
+
+        static int UnscaleX(int x)
+        {
+            return Unscale(x, ScaleDirection.X);
+        }
+
+        static int UnscaleY(int y)
+        {
+            return Unscale(y, ScaleDirection.Y);
+        }
+
+        #endregion
 
         #region WindowProcedure
 
@@ -176,14 +264,23 @@ namespace OpenTK.Platform.Windows
                     // Entering the modal size/move loop: we don't want rendering to
                     // stop during this time, so we register a timer callback to continue
                     // processing from time to time.
+                    is_in_modal_loop = true;
                     StartTimer(handle);
+
+                    if (!CursorVisible)
+                        UngrabCursor();
                     break;
 
                 case WindowMessage.EXITMENULOOP:
                 case WindowMessage.EXITSIZEMOVE:
-                    // ExitingmModal size/move loop: the timer callback is no longer
+                    // Exiting from Modal size/move loop: the timer callback is no longer
                     // necessary.
+                    is_in_modal_loop = false;
                     StopTimer(handle);
+
+                    // Ensure cursor remains grabbed
+                    if (!CursorVisible)
+                        GrabCursor();
                     break;
 
                 case WindowMessage.ERASEBKGND:
@@ -220,9 +317,14 @@ namespace OpenTK.Platform.Windows
                                     Resize(this, EventArgs.Empty);
                             }
 
-                            // Ensure cursor remains grabbed
-                            if (!CursorVisible)
-                                GrabCursor();
+                            if (!is_in_modal_loop)
+                            {
+                                // If we are in a modal resize/move loop, cursor grabbing is
+                                // handled inside [ENTER|EXIT]SIZEMOVE case above.
+                                // If not, then we have to handle cursor grabbing here.
+                                if (!CursorVisible)
+                                    GrabCursor();
+                            }
                         }
                     }
                     break;
@@ -265,11 +367,11 @@ namespace OpenTK.Platform.Windows
                     {
                         windowState = new_state;
                         WindowStateChanged(this, EventArgs.Empty);
-                    }
 
-                    // Ensure cursor remains grabbed
-                    if (!CursorVisible)
-                        GrabCursor();
+                        // Ensure cursor remains grabbed
+                        if (!CursorVisible)
+                            GrabCursor();
+                    }
 
                     break;
 
@@ -685,7 +787,6 @@ namespace OpenTK.Platform.Windows
                 WindowStyle style = (WindowStyle)Functions.GetWindowLong(window.Handle, GetWindowLongOffsets.STYLE);
                 Win32Rectangle rect = Win32Rectangle.From(value);
                 Functions.AdjustWindowRect(ref rect, style, false);
-                Location = new Point(rect.left, rect.top);
                 Size = new Size(rect.Width, rect.Height);
             }
         }

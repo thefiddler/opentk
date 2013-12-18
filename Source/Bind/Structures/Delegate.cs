@@ -52,6 +52,9 @@ namespace Bind.Structures
             Deprecated = d.Deprecated;
             DeprecatedVersion = d.DeprecatedVersion;
             EntryPoint = d.EntryPoint;
+            Obsolete = d.Obsolete;
+            CLSCompliant = d.CLSCompliant;
+            Slot = d.Slot;
         }
 
         #endregion
@@ -239,6 +242,10 @@ namespace Bind.Structures
         public bool Deprecated { get; set; }
         public string DeprecatedVersion { get; set; }
         public string EntryPoint { get; set; }
+        public string Obsolete { get; set; }
+
+        // Slot index in the address table
+        public int Slot { get; set; }
 
         #endregion
 
@@ -302,7 +309,7 @@ namespace Bind.Structures
             else
             {
                 var list = Delegates[d.Name];
-                var index = list.IndexOf(d);
+                var index = list.FindIndex(w => w.CompareTo(d) == 0);
                 if (index < 0)
                 {
                     // Function not defined - add it!

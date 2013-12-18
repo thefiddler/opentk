@@ -92,6 +92,18 @@ namespace OpenTK
         {
             if (mode == null)
                 throw new ArgumentNullException("mode");
+
+            // SDL does not currently support embedding
+            // on external windows. If Open.Toolkit is not yet
+            // initialized, we'll try to request a native backend
+            // that supports embedding.
+            // Most people are using GLControl through the
+            // WinForms designer in Visual Studio. This approach
+            // works perfectly in that case.
+            Toolkit.Init(new ToolkitOptions
+            {
+                Backend = PlatformBackend.PreferNative
+            });
             
             SetStyle(ControlStyles.Opaque, true);
             SetStyle(ControlStyles.UserPaint, true);
@@ -142,6 +154,27 @@ namespace OpenTK
         #endregion
 
         #region --- Protected Methods ---
+
+        /// <summary>
+        /// Gets the <c>CreateParams</c> instance for this <c>GLControl</c>
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int CS_VREDRAW = 0x1;
+                const int CS_HREDRAW = 0x2;
+                const int CS_OWNDC = 0x20;
+
+                CreateParams cp = base.CreateParams;
+                if (Configuration.RunningOnWindows)
+                {
+                    // Setup necessary class style for OpenGL on windows
+                    cp.ClassStyle |= CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
+                }
+                return cp;
+            }
+        }
 
         /// <summary>Raises the HandleCreated event.</summary>
         /// <param name="e">Not used.</param>

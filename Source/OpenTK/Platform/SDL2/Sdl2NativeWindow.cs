@@ -37,6 +37,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Input;
+using System.Text;
 
 namespace OpenTK.Platform.SDL2
 {
@@ -50,16 +51,29 @@ namespace OpenTK.Platform.SDL2
         bool is_focused;
         bool is_cursor_visible = true;
         bool exists;
+        bool must_destroy;
         bool disposed;
+        volatile bool is_in_closing_event;
         WindowState window_state = WindowState.Normal;
         WindowState previous_window_state = WindowState.Normal;
         WindowBorder window_border = WindowBorder.Resizable;
         Icon icon;
         string window_title;
 
+        // Used in KeyPress event to decode SDL UTF8 text strings
+        // to .Net UTF16 strings 
+        char[] DecodeTextBuffer = new char[32];
+
+        // Argument for KeyPress event (allocated once to avoid runtime allocations)
+        readonly KeyPressEventArgs keypress_args = new KeyPressEventArgs('\0');
+
+        // Argument for KeyDown and KeyUp events (allocated once to avoid runtime allocations)
+        readonly KeyboardKeyEventArgs key_args = new KeyboardKeyEventArgs();
+
         readonly IInputDriver input_driver = new Sdl2InputDriver();
 
-        readonly EventFilter EventFilterDelegate = FilterEvents;
+        readonly EventFilter EventFilterDelegate_GCUnsafe = FilterEvents;
+        readonly IntPtr EventFilterDelegate;
 
         static readonly Dictionary<uint, Sdl2NativeWindow> windows =
             new Dictionary<uint, Sdl2NativeWindow>();
@@ -76,7 +90,10 @@ namespace OpenTK.Platform.SDL2
                 flags |= WindowFlags.OPENGL;
                 flags |= WindowFlags.RESIZABLE;
                 flags |= WindowFlags.HIDDEN;
-                flags |= WindowFlags.ALLOW_HIGHDPI;
+                if (Toolkit.Options.EnableHighResolution)
+                {
+                    flags |= WindowFlags.ALLOW_HIGHDPI;
+                }
 
                 if ((flags & WindowFlags.FULLSCREEN_DESKTOP) != 0 ||
                     (flags & WindowFlags.FULLSCREEN) != 0)
@@ -85,6 +102,7 @@ namespace OpenTK.Platform.SDL2
                 IntPtr handle;
                 lock (SDL.Sync)
                 {
+                    EventFilterDelegate = Marshal.GetFunctionPointerForDelegate(EventFilterDelegate_GCUnsafe);
                     handle = SDL.CreateWindow(title, bounds.Left + x, bounds.Top + y, width, height, flags);
                     SDL.AddEventWatch(EventFilterDelegate, handle);
                     SDL.PumpEvents();
@@ -105,8 +123,11 @@ namespace OpenTK.Platform.SDL2
             switch (flags)
             {
                 case GameWindowFlags.Fullscreen:
-                    return WindowFlags.FULLSCREEN_DESKTOP;
-                
+                    if (Sdl2Factory.UseFullscreenDesktop)
+                        return WindowFlags.FULLSCREEN_DESKTOP;
+                    else
+                        return WindowFlags.FULLSCREEN;
+
                 default:
                     return WindowFlags.Default;
             }
@@ -143,6 +164,14 @@ namespace OpenTK.Platform.SDL2
                         if (windows.TryGetValue(ev.Window.WindowID, out window))
                         {
                             ProcessWindowEvent(window, ev.Window);
+                            processed = true;
+                        }
+                        break;
+
+                    case EventType.TEXTINPUT:
+                        if (windows.TryGetValue(ev.Text.WindowID, out window))
+                        {
+                            ProcessTextInputEvent(window, ev.Text);
                             processed = true;
                         }
                         break;
@@ -211,7 +240,50 @@ namespace OpenTK.Platform.SDL2
         {
             bool key_pressed = ev.Key.State == State.Pressed;
             var key = ev.Key.Keysym;
+            window.key_args.Key = TranslateKey(key.Scancode);
+            window.key_args.ScanCode = (uint)key.Scancode;
+            if (key_pressed)
+            {
+                window.KeyDown(window, window.key_args);
+            }
+            else
+            {
+                window.KeyUp(window, window.key_args);
+            }
             //window.keyboard.SetKey(TranslateKey(key.scancode), (uint)key.scancode, key_pressed);
+        }
+
+        static unsafe void ProcessTextInputEvent(Sdl2NativeWindow window, TextInputEvent ev)
+        {
+            // Calculate the length of the typed text string
+            int length;
+            for (length = 0; length < TextInputEvent.TextSize && ev.Text[length] != '\0'; length++)
+                ;
+
+            // Make sure we have enough space to decode this string
+            int decoded_length = Encoding.UTF8.GetCharCount(ev.Text, length);
+            if (window.DecodeTextBuffer.Length < decoded_length)
+            {
+                Array.Resize(
+                    ref window.DecodeTextBuffer,
+                    2 * Math.Max(decoded_length, window.DecodeTextBuffer.Length));
+            }
+
+            // Decode the string from UTF8 to .Net UTF16
+            fixed (char* pBuffer = window.DecodeTextBuffer)
+            {
+                decoded_length = System.Text.Encoding.UTF8.GetChars(
+                    ev.Text,
+                    length,
+                    pBuffer,
+                    window.DecodeTextBuffer.Length);
+            }
+
+            for (int i = 0; i < decoded_length; i++)
+            {
+                window.keypress_args.KeyChar = window.DecodeTextBuffer[i];
+                window.KeyPress(window, window.keypress_args);
+            }
         }
 
         static void ProcessMotionEvent(Sdl2NativeWindow window, Event ev)
@@ -232,11 +304,20 @@ namespace OpenTK.Platform.SDL2
             {
                 case WindowEventID.CLOSE:
                     var close_args = new System.ComponentModel.CancelEventArgs();
-                    window.Closing(window, close_args);
+                    try
+                    {
+                        window.is_in_closing_event = true;
+                        window.Closing(window, close_args);
+                    }
+                    finally
+                    {
+                        window.is_in_closing_event = false;
+                    }
+
                     if (!close_args.Cancel)
                     {
                         window.Closed(window, EventArgs.Empty);
-                        //window.DestroyWindow();
+                        window.must_destroy = true;
                     }
                     break;
 
@@ -273,14 +354,13 @@ namespace OpenTK.Platform.SDL2
                     break;
 
                 case WindowEventID.MAXIMIZED:
-                    window.previous_window_state = window.window_state;
-                    window.window_state = OpenTK.WindowState.Maximized;
+                    window.window_state = WindowState.Maximized;
                     window.WindowStateChanged(window, EventArgs.Empty);
                     break;
 
                 case WindowEventID.MINIMIZED:
                     window.previous_window_state = window.window_state;
-                    window.window_state = OpenTK.WindowState.Minimized;
+                    window.window_state = WindowState.Minimized;
                     window.WindowStateChanged(window, EventArgs.Empty);
                     break;
 
@@ -310,6 +390,7 @@ namespace OpenTK.Platform.SDL2
 
             if (window.Handle != IntPtr.Zero)
             {
+                CursorVisible = true;
                 lock (SDL.Sync)
                 {
                     SDL.DelEventWatch(EventFilterDelegate, window.Handle);
@@ -392,9 +473,9 @@ namespace OpenTK.Platform.SDL2
         {
             lock (sync)
             {
-                if (Exists)
+                if (Exists && !must_destroy && !is_in_closing_event)
                 {
-                    Debug.Print("SDL2 destroying window {0}", window.Handle);
+                    Debug.Print("SDL2 closing window {0}", window.Handle);
 
                     Event e = new Event();
                     e.Type = EventType.WINDOWEVENT;
@@ -415,6 +496,10 @@ namespace OpenTK.Platform.SDL2
                 if (Exists)
                 {
                     SDL.PumpEvents();
+                    if (must_destroy)
+                    {
+                        DestroyWindow();
+                    }
                 }
             }
         }
@@ -573,13 +658,15 @@ namespace OpenTK.Platform.SDL2
                             {
                                 case WindowState.Fullscreen:
                                     RestoreWindow();
-                                    if (SDL.SetWindowFullscreen(window.Handle, (uint)WindowFlags.FULLSCREEN_DESKTOP) < 0)
+                                    bool success = Sdl2Factory.UseFullscreenDesktop ?
+                                        SDL.SetWindowFullscreen(window.Handle, (uint)WindowFlags.FULLSCREEN_DESKTOP) < 0 :
+                                        SDL.SetWindowFullscreen(window.Handle, (uint)WindowFlags.FULLSCREEN) < 0;
+
+                                    if (!success)
                                     {
-                                        if (SDL.SetWindowFullscreen(window.Handle, (uint)WindowFlags.FULLSCREEN) < 0)
-                                        {
                                             Debug.Print("SDL2 failed to enter fullscreen mode: {0}", SDL.GetError());
-                                        }
                                     }
+
                                     SDL.RaiseWindow(window.Handle);
                                     // There is no "fullscreen" message in the event loop
                                     // so we have to mark that ourselves
@@ -589,11 +676,12 @@ namespace OpenTK.Platform.SDL2
                                 case WindowState.Maximized:
                                     RestoreWindow();
                                     SDL.MaximizeWindow(window.Handle);
-                                    HideShowWindowHack();
+                                    window_state = WindowState.Maximized;
                                     break;
 
                                 case WindowState.Minimized:
                                     SDL.MinimizeWindow(window.Handle);
+                                    window_state = WindowState.Minimized;
                                     break;
 
                                 case WindowState.Normal:
@@ -896,6 +984,15 @@ namespace OpenTK.Platform.SDL2
                     else
                     {
                         Debug.WriteLine("Sdl2NativeWindow leaked, did you forget to call Dispose()?");
+                        if (Exists)
+                        {
+                            // If the main loop is still running, send a close message.
+                            // This will raise the Closing/Closed events and then destroy
+                            // the window.
+                            // Todo: it is probably not safe to raise events once the
+                            // finalizer has run. Review this.
+                            Close();
+                        }
                     }
                     disposed = true;
                 }

@@ -29,6 +29,7 @@ using System.Runtime.InteropServices;
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Security;
 using System.Runtime.InteropServices;
 
@@ -46,17 +47,25 @@ namespace OpenTK.Platform.SDL2
         #endif
 
         public readonly static object Sync = new object();
-        public readonly static Version Version;
-
-        static SDL()
+        static Nullable<Version> version;
+        public static Version Version
         {
-            try
+            get
             {
-                GetVersion(out Version);
-            }
-            catch
-            {
-                // nom nom
+                try
+                {
+                    if (!version.HasValue)
+                    {
+                        version = GetVersion();
+                    }
+                    return version.Value;
+                }
+                catch
+                {
+                    // nom nom
+                    Debug.Print("[SDL2] Failed to retrieve version");
+                    return new Version();
+                }
             }
         }
 
@@ -73,6 +82,10 @@ namespace OpenTK.Platform.SDL2
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_AddEventWatch", ExactSpelling = true)]
         public static extern void AddEventWatch(EventFilter filter, IntPtr userdata);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_AddEventWatch", ExactSpelling = true)]
+        public static extern void AddEventWatch(IntPtr filter, IntPtr userdata);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_CreateRGBSurfaceFrom", ExactSpelling = true)]
@@ -92,6 +105,10 @@ namespace OpenTK.Platform.SDL2
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_DelEventWatch", ExactSpelling = true)]
         public static extern void DelEventWatch(EventFilter filter, IntPtr userdata);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_DelEventWatch", ExactSpelling = true)]
+        public static extern void DelEventWatch(IntPtr filter, IntPtr userdata);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_DestroyWindow", ExactSpelling = true)]
@@ -140,6 +157,12 @@ namespace OpenTK.Platform.SDL2
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetVersion", ExactSpelling = true)]
         public static extern void GetVersion(out Version version);
+        public static Version GetVersion()
+        {
+            Version v;
+            GetVersion(out v);
+            return v;
+        }
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetWindowID", ExactSpelling = true)]
@@ -183,7 +206,14 @@ namespace OpenTK.Platform.SDL2
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_JoystickName", ExactSpelling = true)]
-        public static extern string JoystickName(IntPtr joystick);
+        static extern IntPtr JoystickNameInternal(IntPtr joystick);
+        public static string JoystickName(IntPtr joystick)
+        {
+            unsafe
+            {
+                return new string((sbyte*)JoystickNameInternal(joystick));
+            }
+        }
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_JoystickNumAxes", ExactSpelling = true)]
@@ -313,7 +343,7 @@ namespace OpenTK.Platform.SDL2
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GL_GetProcAddress", ExactSpelling = true)]
-            static extern IntPtr GetProcAddress(IntPtr proc);
+            public static extern IntPtr GetProcAddress(IntPtr proc);
             public static IntPtr GetProcAddress(string proc)
             {
                 IntPtr p = Marshal.StringToHGlobalAnsi(proc);

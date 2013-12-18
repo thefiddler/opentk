@@ -3,11 +3,9 @@ OpenTK
 
 The Open Toolkit is an advanced, low-level C# library that wraps OpenGL, OpenGL ES and OpenAL. It is suitable for games, scientific applications and any other project that requires 3d graphics, audio or compute functionality.
 
-The official GIT repository can be found at:
+This is the official GIT repository of the project:
 
 https://github.com/opentk/opentk
-
-This repository is a clone of the official repository.
 
 
 Features

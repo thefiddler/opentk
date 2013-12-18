@@ -73,10 +73,11 @@ namespace OpenTK.Platform.SDL2
                 }
 
                 Mode = GetGLAttributes(SdlContext, out flags);
-                Debug.Print("SDL2 created GraphicsContext (mode: {0}) (flags: {1})",
-                    Mode, flags);
             }
             Handle = GraphicsContext.GetCurrentContext();
+            Debug.Print("SDL2 created GraphicsContext (handle: {0})", Handle);
+            Debug.Print("    GraphicsMode: {0}", Mode);
+            Debug.Print("    GraphicsContextFlags: {0}", flags);
         }
 
         #region Private Members
@@ -294,6 +295,11 @@ namespace OpenTK.Platform.SDL2
             return SDL.GL.GetProcAddress(function);
         }
 
+        public override IntPtr GetAddress(IntPtr function)
+        {
+            return SDL.GL.GetProcAddress(function);
+        }
+
         public override bool IsCurrent
         {
             get
@@ -327,7 +333,7 @@ namespace OpenTK.Platform.SDL2
             {
                 if (manual)
                 {
-                    Debug.Print("Disposing {0}", GetType());
+                    Debug.Print("Disposing {0} (handle: {1})", GetType(), Handle);
                     lock (SDL.Sync)
                     {
                         SDL.GL.DeleteContext(SdlContext.Handle);
@@ -335,7 +341,8 @@ namespace OpenTK.Platform.SDL2
                 }
                 else
                 {
-                    Debug.WriteLine("Sdl2GraphicsContext leaked, did you forget to call Dispose()?");
+                    Debug.Print("Sdl2GraphicsContext (handle: {0}) leaked, did you forget to call Dispose()?",
+                        Handle);
                 }
                 IsDisposed = true;
             }

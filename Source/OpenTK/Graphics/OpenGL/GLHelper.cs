@@ -1,10 +1,30 @@
-#region --- License ---
-/* Copyright (c) 2006-2008 the OpenTK team.
- * See license.txt for license info
- * 
- * Contributions by Andy Gill.
- */
+#region License
+//
+// The Open Toolkit Library License
+//
+// Copyright (c) 2006 - 2013 Stefanos Apostolopoulos for the Open Toolkit Library
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights to 
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do
+// so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+//
 #endregion
+
 
 #region --- Using Directives ---
 
@@ -58,12 +78,20 @@ namespace OpenTK.Graphics.OpenGL
         static SortedList<string, bool> AvailableExtensions = new SortedList<string, bool>();
         static readonly object sync_root = new object();
 
+        static IntPtr[] EntryPoints;
+        static string[] EntryPointNames;
+
         #endregion
 
-        #region --- Constructor ---
+        #region Constructors
 
-        static GL()
+        /// <summary>
+        /// Constructs a new instance.
+        /// </summary>
+        public GL()
         {
+            EntryPointsInstance = EntryPoints;
+            EntryPointNamesInstance = EntryPointNames;
         }
 
         #endregion
@@ -108,7 +136,7 @@ namespace OpenTK.Graphics.OpenGL
 
         public static void Color3(Color color)
         {
-            GL.Color3(color.R, color.G, color.B);
+			GL.Color3(color.R, color.G, color.B);
         }
 
         public static void Color4(Color color)
@@ -663,7 +691,7 @@ namespace OpenTK.Graphics.OpenGL
         public static string GetActiveAttrib(int program, int index, out int size, out ActiveAttribType type)
         {
             int length;
-            GetProgram(program, OpenTK.Graphics.OpenGL.ProgramParameter.ActiveAttributeMaxLength, out length);
+            GetProgram(program, OpenTK.Graphics.OpenGL.GetProgramParameterName.ActiveAttributeMaxLength, out length);
             StringBuilder sb = new StringBuilder(length == 0 ? 1 : length * 2);
 
             GetActiveAttrib(program, index, sb.Capacity, out length, out size, out type, sb);
@@ -677,7 +705,7 @@ namespace OpenTK.Graphics.OpenGL
         public static string GetActiveUniform(int program, int uniformIndex, out int size, out ActiveUniformType type)
         {
             int length;
-            GetProgram(program, OpenTK.Graphics.OpenGL.ProgramParameter.ActiveUniformMaxLength, out length);
+            GetProgram(program, OpenTK.Graphics.OpenGL.GetProgramParameterName.ActiveUniformMaxLength, out length);
 
             StringBuilder sb = new StringBuilder(length == 0 ? 1 : length);
             GetActiveUniform(program, uniformIndex, sb.Capacity, out length, out size, out type, sb);
@@ -691,7 +719,7 @@ namespace OpenTK.Graphics.OpenGL
         public static string GetActiveUniformName(int program, int uniformIndex)
         {
             int length;
-            GetProgram(program, OpenTK.Graphics.OpenGL.ProgramParameter.ActiveUniformMaxLength, out length);
+            GetProgram(program, OpenTK.Graphics.OpenGL.GetProgramParameterName.ActiveUniformMaxLength, out length);
             StringBuilder sb = new StringBuilder(length == 0 ? 1 : length * 2);
 
             GetActiveUniformName(program, uniformIndex, sb.Capacity, out length, sb);
@@ -705,7 +733,7 @@ namespace OpenTK.Graphics.OpenGL
         public static string GetActiveUniformBlockName(int program, int uniformIndex)
         {
             int length;
-            GetProgram(program, OpenTK.Graphics.OpenGL.ProgramParameter.ActiveUniformBlockMaxNameLength, out length);
+            GetProgram(program, OpenTK.Graphics.OpenGL.GetProgramParameterName.ActiveUniformBlockMaxNameLength, out length);
             StringBuilder sb = new StringBuilder(length == 0 ? 1 : length * 2);
 
             GetActiveUniformBlockName(program, uniformIndex, sb.Capacity, out length, sb);
@@ -777,7 +805,7 @@ namespace OpenTK.Graphics.OpenGL
             unsafe
             {
                 int length;
-                GL.GetProgram(program, OpenTK.Graphics.OpenGL.ProgramParameter.InfoLogLength, out length); if (length == 0)
+                GL.GetProgram(program, OpenTK.Graphics.OpenGL.GetProgramParameterName.InfoLogLength, out length); if (length == 0)
                 {
                     info = String.Empty;
                     return;
@@ -910,11 +938,13 @@ namespace OpenTK.Graphics.OpenGL
 
         #region Rect
 
+        [CLSCompliant(false)]
         public static void Rect(RectangleF rect)
         {
             GL.Rect(rect.Left, rect.Top, rect.Right, rect.Bottom);
         }
 
+        [CLSCompliant(false)]
         public static void Rect(Rectangle rect)
         {
             GL.Rect(rect.Left, rect.Top, rect.Right, rect.Bottom);
@@ -974,15 +1004,6 @@ namespace OpenTK.Graphics.OpenGL
         public static void VertexAttribPointer(int index, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)
         {
             VertexAttribPointer(index, size, type, normalized, stride, (IntPtr)offset);
-        }
-
-        #endregion
-
-        #region DrawElements
-
-        public static void DrawElements(PrimitiveType mode, int count, DrawElementsType type, int offset)
-        {
-            DrawElements(mode, count, type, new IntPtr(offset));
         }
 
         #endregion
@@ -1115,28 +1136,24 @@ namespace OpenTK.Graphics.OpenGL
 
         #region Obsolete
 
-        [AutoGenerated(Category = "Version11Deprecated", Version = "1.1", EntryPoint = "glDisableClientState")]
         [Obsolete("Use DisableClientState(ArrayCap) instead")]
         public static void DisableClientState(OpenTK.Graphics.OpenGL.EnableCap array)
         {
             DisableClientState((ArrayCap)array);
         }
 
-        [AutoGenerated(Category = "Version11Deprecated", Version = "1.1", EntryPoint = "glEnableClientState")]
         [Obsolete("Use EnableClientState(ArrayCap) instead.")]
         public static void EnableClientState(OpenTK.Graphics.OpenGL.EnableCap array)
         {
             EnableClientState((ArrayCap)array);
         }
 
-        [AutoGenerated(Category = "ArbUniformBufferObject", Version = "2.0", EntryPoint = "glGetActiveUniformsiv")]
         [Obsolete("Use GetActiveUniforms(..., ActiveUniformParameter, ...) instead.")]
         public static void GetActiveUniforms(Int32 program, Int32 uniformCount, Int32[] uniformIndices, ArbUniformBufferObject pname, [OutAttribute] Int32[] @params)
         {
             GetActiveUniforms(program, uniformCount, uniformIndices, (ActiveUniformParameter)pname, @params);
         }
 
-        [AutoGenerated(Category = "ArbUniformBufferObject", Version = "2.0", EntryPoint = "glGetActiveUniformsiv")]
         [Obsolete("Use GetActiveUniforms(..., ActiveUniformParameter, ...) instead.")]
         public static void GetActiveUniforms(Int32 program, Int32 uniformCount, ref Int32 uniformIndices, ArbUniformBufferObject pname, [OutAttribute] out Int32 @params)
         {
@@ -1144,7 +1161,6 @@ namespace OpenTK.Graphics.OpenGL
         }
 
         [System.CLSCompliant(false)]
-        [AutoGenerated(Category = "ArbUniformBufferObject", Version = "2.0", EntryPoint = "glGetActiveUniformsiv")]
         [Obsolete("Use GetActiveUniforms(..., ActiveUniformParameter, ...) instead.")]
         public static unsafe void GetActiveUniforms(Int32 program, Int32 uniformCount, Int32* uniformIndices, ArbUniformBufferObject pname, [OutAttribute] Int32* @params)
         {
@@ -1152,7 +1168,6 @@ namespace OpenTK.Graphics.OpenGL
         }
 
         [System.CLSCompliant(false)]
-        [AutoGenerated(Category = "ArbUniformBufferObject", Version = "2.0", EntryPoint = "glGetActiveUniformsiv")]
         [Obsolete("Use GetActiveUniforms(..., ActiveUniformParameter, ...) instead.")]
         public static void GetActiveUniforms(UInt32 program, Int32 uniformCount, UInt32[] uniformIndices, ArbUniformBufferObject pname, [OutAttribute] Int32[] @params)
         {
@@ -1160,7 +1175,6 @@ namespace OpenTK.Graphics.OpenGL
         }
 
         [System.CLSCompliant(false)]
-        [AutoGenerated(Category = "ArbUniformBufferObject", Version = "2.0", EntryPoint = "glGetActiveUniformsiv")]
         [Obsolete("Use GetActiveUniforms(..., ActiveUniformParameter, ...) instead.")]
         public static void GetActiveUniforms(UInt32 program, Int32 uniformCount, ref UInt32 uniformIndices, ArbUniformBufferObject pname, [OutAttribute] out Int32 @params)
         {
@@ -1168,23 +1182,57 @@ namespace OpenTK.Graphics.OpenGL
         }
 
         [System.CLSCompliant(false)]
-        [AutoGenerated(Category = "ArbUniformBufferObject", Version = "2.0", EntryPoint = "glGetActiveUniformsiv")]
         [Obsolete("Use GetActiveUniforms(..., ActiveUniformParameter, ...) instead.")]
         public static unsafe void GetActiveUniforms(UInt32 program, Int32 uniformCount, UInt32* uniformIndices, ArbUniformBufferObject pname, [OutAttribute] Int32* @params)
         {
             GetActiveUniforms(program, uniformCount, uniformIndices, (ActiveUniformParameter)pname, @params);
         }
 
+        [Obsolete("Use strongly-typed overload instead")]
+		public static void GetBufferParameteri64(Version32 target, Version32 pname, [OutAttribute] Int64[] @params)
+        {
+            GL.GetBufferParameter((BufferTarget)target, (BufferParameterName)pname, @params);
+        }
+
+        [Obsolete("Use strongly-typed overload instead")]
+		public static void GetBufferParameteri64(Version32 target, Version32 pname, out Int64 @params)
+        {
+            GL.GetBufferParameter((BufferTarget)target, (BufferParameterName)pname, out @params);
+        }
+
+        [Obsolete("Use strongly-typed overload instead")]
+		[CLSCompliant(false)]
+		public static unsafe void GetBufferParameteri64(Version32 target, Version32 pname, [OutAttribute] Int64* @params)
+        {
+            GL.GetBufferParameter((BufferTarget)target, (BufferParameterName)pname, @params);
+        }
+
+        [Obsolete("Use GL.Arb.FramebufferTextureFace instead (OpenGL spec bug)")]
+		public static void FramebufferTextureFace(Version32 target, Version32 attachment,
+            int texture, int level, Version32 face)
+        {
+            Arb.FramebufferTextureFace((FramebufferTarget)target,
+                (FramebufferAttachment)attachment, texture, level, (TextureTarget)face);
+        }
+
+        [Obsolete("Use GL.Arb.FramebufferTextureFace instead (OpenGL spec bug)")]
+		[CLSCompliant(false)]
+		public static void FramebufferTextureFace(Version32 target, Version32 attachment,
+			uint texture, int level, Version32 face)
+        {
+            Arb.FramebufferTextureFace((FramebufferTarget)target,
+                (FramebufferAttachment)attachment, texture, level, (TextureTarget)face);
+        }
+
+
         public static partial class Arb
         {
-            [AutoGenerated(Category = "ArbGeometryShader4", Version = "3.0", EntryPoint = "glProgramParameteriARB")]
             [Obsolete("Use ProgramParameter(..., AssemblyProgramParameterArb, ...) instead.")]
             public static void ProgramParameter(Int32 program, ArbGeometryShader4 pname, Int32 value)
             {
                 ProgramParameter(program, (AssemblyProgramParameterArb)pname, value);
             }
 
-            [AutoGenerated(Category = "ArbGeometryShader4", Version = "3.0", EntryPoint = "glProgramParameteriARB")]
             [Obsolete("Use ProgramParameter(..., AssemblyProgramParameterArb, ...) instead.")]
             [CLSCompliant(false)]
             public static void ProgramParameter(UInt32 program, ArbGeometryShader4 pname, Int32 value)
@@ -1195,14 +1243,12 @@ namespace OpenTK.Graphics.OpenGL
 
         public static partial class Ext
         {
-            [AutoGenerated(Category = "EXT_geometry_shader4", Version = "2.0", EntryPoint = "glProgramParameteriEXT")]
             [Obsolete("Use ProgramParameter(..., AssemblyProgramParameterArb, ...) instead.")]
             public static void ProgramParameter(Int32 program, ExtGeometryShader4 pname, Int32 value)
             {
                 ProgramParameter(program, (AssemblyProgramParameterArb)pname, value);
             }
 
-            [AutoGenerated(Category = "ArbGeometryShader4", Version = "3.0", EntryPoint = "glProgramParameteriARB")]
             [Obsolete("Use ProgramParameter(..., AssemblyProgramParameterArb, ...) instead.")]
             [CLSCompliant(false)]
             public static void ProgramParameter(UInt32 program, ExtGeometryShader4 pname, Int32 value)

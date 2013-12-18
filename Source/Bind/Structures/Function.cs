@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -35,6 +36,8 @@ namespace Bind.Structures
             Parameters = new ParameterCollection(f.Parameters);
             ReturnType = new Type(f.ReturnType);
             TrimmedName = f.TrimmedName;
+            Obsolete = f.Obsolete;
+            CLSCompliant = f.CLSCompliant;
             Body.AddRange(f.Body);
         }
 
@@ -244,8 +247,17 @@ namespace Bind.Structures
                 else
                 {
                     Function existing = list[index];
-                    if ((existing.Parameters.HasUnsignedParameters && !unsignedFunctions.IsMatch(existing.Name) && unsignedFunctions.IsMatch(f.Name)) ||
-                        (!existing.Parameters.HasUnsignedParameters && unsignedFunctions.IsMatch(existing.Name) && !unsignedFunctions.IsMatch(f.Name)))
+                    bool replace = existing.Parameters.HasUnsignedParameters &&
+                        !unsignedFunctions.IsMatch(existing.Name) && unsignedFunctions.IsMatch(f.Name);
+                    replace |= !existing.Parameters.HasUnsignedParameters &&
+                        unsignedFunctions.IsMatch(existing.Name) && !unsignedFunctions.IsMatch(f.Name);
+                    replace |=
+                        (from p_old in existing.Parameters
+                                        join p_new in f.Parameters on p_old.Name equals p_new.Name
+                                        where p_new.ElementCount == 0 && p_old.ElementCount != 0
+                                        select true)
+                            .Count() != 0;
+                    if (replace)
                     {
                         list[index] = f;
                     }

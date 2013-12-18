@@ -581,14 +581,12 @@ namespace OpenTK.Platform.Windows
 
         #region GetProcAddress
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <param name="funcname"></param>
-        /// <returns></returns>
         [DllImport("kernel32.dll")]
         internal static extern IntPtr GetProcAddress(IntPtr handle, string funcname);
+
+        [DllImport("kernel32.dll")]
+        internal static extern IntPtr GetProcAddress(IntPtr handle, IntPtr funcname);
+
 
         #endregion
 
@@ -974,6 +972,13 @@ namespace OpenTK.Platform.Windows
         /// </remarks>
         [DllImport("user32.dll")]
         internal static extern BOOL SetProcessDPIAware();
+
+        #endregion
+
+        #region GetDeviceCaps
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
+        public static extern int GetDeviceCaps(IntPtr hDC, DeviceCaps nIndex);
 
         #endregion
 
@@ -1618,6 +1623,7 @@ namespace OpenTK.Platform.Windows
             internal const byte PFD_UNDERLAY_PLANE = unchecked((byte)-1);
 
             // Device mode types (found in wingdi.h)
+            internal const int DM_LOGPIXELS = 0x00020000;
             internal const int DM_BITSPERPEL = 0x00040000;
             internal const int DM_PELSWIDTH = 0x00080000;
             internal const int DM_PELSHEIGHT = 0x00100000;
@@ -2967,6 +2973,16 @@ namespace OpenTK.Platform.Windows
         VREDRAW = 0x200,
         REDRAW = (HREDRAW | VREDRAW),
         VALIDRECTS = 0x400
+    }
+
+    #endregion
+
+    #region DeviceCaps
+
+    enum DeviceCaps
+    {
+        LogPixelsX = 88,
+        LogPixelsY = 90
     }
 
     #endregion
