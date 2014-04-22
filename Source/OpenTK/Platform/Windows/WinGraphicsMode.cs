@@ -35,7 +35,7 @@ using OpenTK.Graphics;
 
 namespace OpenTK.Platform.Windows
 {
-    class WinGraphicsMode : IGraphicsMode
+    class WinGraphicsMode
     {
         enum AccelerationType
         {
@@ -63,19 +63,17 @@ namespace OpenTK.Platform.Windows
 
         #endregion
 
-        #region IGraphicsMode Members
+        #region Public Members
 
-        public GraphicsMode SelectGraphicsMode(ColorFormat color, int depth, int stencil, int samples,
-            ColorFormat accum, int buffers, bool stereo)
+        public GraphicsMode SelectGraphicsMode(GraphicsMode mode, GraphicsContextFlags flags)
         {
-            GraphicsMode mode = new GraphicsMode(color, depth, stencil, samples,accum, buffers, stereo);
-            GraphicsMode created_mode = ChoosePixelFormatARB(Device, mode);
+            GraphicsMode created_mode = ChoosePixelFormatARB(Device, mode, flags);
 
             // If ChoosePixelFormatARB failed, iterate through all acceleration types in turn (ICD, MCD, None)
             // This should fix issue #2224, which causes OpenTK to fail on VMs without hardware acceleration.
-            created_mode = created_mode ?? ChoosePixelFormatPFD(Device, mode, AccelerationType.ICD);
-            created_mode = created_mode ?? ChoosePixelFormatPFD(Device, mode, AccelerationType.MCD);
-            created_mode = created_mode ?? ChoosePixelFormatPFD(Device, mode, AccelerationType.None);
+            created_mode = created_mode ?? ChoosePixelFormatPFD(Device, mode, flags, AccelerationType.ICD);
+            created_mode = created_mode ?? ChoosePixelFormatPFD(Device, mode, flags, AccelerationType.MCD);
+            created_mode = created_mode ?? ChoosePixelFormatPFD(Device, mode, flags, AccelerationType.None);
 
             if (created_mode == null)
             {
@@ -96,7 +94,7 @@ namespace OpenTK.Platform.Windows
         // hardware acceleration (e.g. we are running in a VM or in a remote desktop
         // connection), this method will return 0 formats and we will fall back to
         // ChoosePixelFormatPFD.
-        GraphicsMode ChoosePixelFormatARB(IntPtr device, GraphicsMode desired_mode)
+        GraphicsMode ChoosePixelFormatARB(IntPtr device, GraphicsMode desired_mode, GraphicsContextFlags flags)
         {
             GraphicsMode created_mode = null;
             GraphicsMode mode = new GraphicsMode(desired_mode);
@@ -115,6 +113,12 @@ namespace OpenTK.Platform.Windows
                     attributes.Add((int)WGL_ARB_pixel_format.FullAccelerationArb);
                     attributes.Add((int)WGL_ARB_pixel_format.DrawToWindowArb);
                     attributes.Add(1);
+
+                    if ((flags & GraphicsContextFlags.SwapCopy) != 0)
+                    {
+                        attributes.Add((int)WGL_ARB_pixel_format.SwapMethodArb);
+                        attributes.Add((int)WGL_ARB_pixel_format.SwapCopyArb);
+                    }
 
                     if (mode.ColorFormat.Red > 0)
                     {
@@ -177,7 +181,7 @@ namespace OpenTK.Platform.Windows
                     }
 
                     if (mode.Samples > 0 &&
-                    Wgl.SupportsExtension("WGL_ARB_multisample"))
+                        Wgl.SupportsExtension("WGL_ARB_multisample"))
                     {
                         attributes.Add((int)WGL_ARB_multisample.SampleBuffersArb);
                         attributes.Add(1);
@@ -272,16 +276,21 @@ namespace OpenTK.Platform.Windows
             return type;
         }
 
-        GraphicsMode ChoosePixelFormatPFD(IntPtr device, GraphicsMode mode, AccelerationType requested_acceleration_type)
+        GraphicsMode ChoosePixelFormatPFD(IntPtr device, GraphicsMode mode, GraphicsContextFlags flags, AccelerationType requested_acceleration_type)
         {
             PixelFormatDescriptor pfd = new PixelFormatDescriptor();
-            PixelFormatDescriptorFlags flags = 0;
-            flags |= PixelFormatDescriptorFlags.DRAW_TO_WINDOW;
-            flags |= PixelFormatDescriptorFlags.SUPPORT_OPENGL;
+            PixelFormatDescriptorFlags pf_flags = 0;
+            pf_flags |= PixelFormatDescriptorFlags.DRAW_TO_WINDOW;
+            pf_flags |= PixelFormatDescriptorFlags.SUPPORT_OPENGL;
+
+            if ((flags & GraphicsContextFlags.SwapCopy) != 0)
+            {
+                pf_flags |= PixelFormatDescriptorFlags.SWAP_COPY;
+            }
 
             if (mode.Stereo)
             {
-                flags |= PixelFormatDescriptorFlags.STEREO;
+                pf_flags |= PixelFormatDescriptorFlags.STEREO;
             }
 
             if (System.Environment.OSVersion.Version.Major >= 6 &&
@@ -295,7 +304,7 @@ namespace OpenTK.Platform.Windows
                 // acceleration. Don't set this flag when running
                 // with software acceleration (e.g. over Remote Desktop
                 // as described in bug https://github.com/opentk/opentk/issues/35)
-                flags |= PixelFormatDescriptorFlags.SUPPORT_COMPOSITION;
+                pf_flags |= PixelFormatDescriptorFlags.SUPPORT_COMPOSITION;
             }
 
             int count = Functions.DescribePixelFormat(device, 1, API.PixelFormatDescriptorSize, ref pfd);
@@ -307,7 +316,7 @@ namespace OpenTK.Platform.Windows
                 int dist = 0;
                 bool valid = Functions.DescribePixelFormat(device, index, API.PixelFormatDescriptorSize, ref pfd) != 0;
                 valid &= GetAccelerationType(ref pfd) == requested_acceleration_type;
-                valid &= (pfd.Flags & flags) == flags;
+                valid &= (pfd.Flags & pf_flags) == pf_flags;
                 valid &= pfd.PixelType == PixelType.RGBA; // indexed modes not currently supported
                 // heavily penalize single-buffered modes when the user requests double buffering
                 if ((pfd.Flags & PixelFormatDescriptorFlags.DOUBLEBUFFER) == 0 && mode.Buffers > 1)

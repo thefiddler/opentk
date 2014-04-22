@@ -55,7 +55,8 @@ namespace OpenTK.Platform.Windows
                 // of the temp window
                 WinWindowInfo window = native.WindowInfo as WinWindowInfo;
                 WinGraphicsMode selector = new WinGraphicsMode(window.DeviceContext);
-                WinGLContext.SetGraphicsModePFD(selector, GraphicsMode.Default, window);
+                WinGLContext.SetGraphicsModePFD(
+                    selector, GraphicsMode.Default, GraphicsContextFlags.Default, window);
 
                 bool success = false;
 
@@ -136,7 +137,7 @@ namespace OpenTK.Platform.Windows
                         System.Threading.Thread.CurrentThread.ManagedThreadId);
 
                     ModeSelector = new WinGraphicsMode(window.DeviceContext);
-                    Mode = SetGraphicsModePFD(ModeSelector, format, (WinWindowInfo)window);
+                    Mode = SetGraphicsModePFD(ModeSelector, format, flags, (WinWindowInfo)window);
 
                     if (Wgl.SupportsFunction("wglCreateContextAttribsARB"))
                     {
@@ -412,7 +413,7 @@ namespace OpenTK.Platform.Windows
 
         // Note: there is no relevant ARB function.
         internal static GraphicsMode SetGraphicsModePFD(WinGraphicsMode mode_selector,
-            GraphicsMode mode, WinWindowInfo window)
+            GraphicsMode mode, GraphicsContextFlags flags, WinWindowInfo window)
         {
             Debug.Write("Setting pixel format... ");
             if (window == null)
@@ -420,10 +421,7 @@ namespace OpenTK.Platform.Windows
 
             if (!mode.Index.HasValue)
             {
-                mode = mode_selector.SelectGraphicsMode(
-                    mode.ColorFormat, mode.Depth, mode.Stencil,
-                    mode.Samples, mode.AccumulatorFormat,
-                    mode.Buffers, mode.Stereo);
+                mode = mode_selector.SelectGraphicsMode(mode, flags);
             }
 
             PixelFormatDescriptor pfd = new PixelFormatDescriptor();
