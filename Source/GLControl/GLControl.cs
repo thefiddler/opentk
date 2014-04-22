@@ -78,7 +78,7 @@ namespace OpenTK
         /// </summary>
         /// <param name="mode">The OpenTK.Graphics.GraphicsMode of the control.</param>
         public GLControl(GraphicsMode mode)
-            : this(mode, 1, 0, GraphicsContextFlags.Default)
+            : this(mode, 1, 0, GraphicsContextFlags.SwapCopy)
         { }
 
         /// <summary>
@@ -92,6 +92,10 @@ namespace OpenTK
         {
             if (mode == null)
                 throw new ArgumentNullException("mode");
+            if ((flags & GraphicsContextFlags.SwapCopy) == 0)
+            {
+                Debug.WriteLine("It is recommended to use GraphicsContextFlags.SwapCopy for GLControl.");
+            }
 
             // SDL does not currently support embedding
             // on external windows. If Open.Toolkit is not yet
