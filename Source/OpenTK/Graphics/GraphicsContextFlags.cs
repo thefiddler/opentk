@@ -56,6 +56,13 @@ namespace OpenTK.Graphics
         /// <summary>
         /// Indicates that this GraphicsContext is targeting OpenGL|ES.
         /// </summary>
-        Embedded = 0x0004
+        Embedded = 0x0004,
+        /// <summary>
+        /// Indicates that this GraphicsContext should use swap copy semantics.
+        /// Calling SwapBuffers() will no longer invalidate the contents of the
+        /// default framebuffer, which is useful for GUI applications.
+        /// This option may impact performance.
+        /// </summary>
+        SwapCopy = 0x0008,
     }
 }
