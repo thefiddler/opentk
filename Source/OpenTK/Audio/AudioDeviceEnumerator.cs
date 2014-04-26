@@ -34,89 +34,51 @@ using OpenTK.Audio.OpenAL;
 
 namespace OpenTK.Audio
 {
-    internal static class AudioDeviceEnumerator
+    enum AlcVersion
     {
-        #region All device strings
+        Alc1_0,
+        Alc1_1
+    }
 
-        private static readonly List<string> available_playback_devices = new List<string>();
-        private static readonly List<string> available_recording_devices = new List<string>();
+    class AudioDeviceEnumerator
+    {
+        readonly List<string> available_playback_devices = new List<string>();
+        readonly List<string> available_recording_devices = new List<string>();
 
-        internal static IList<string> AvailablePlaybackDevices
+        internal bool IsOpenALSupported { get; private set; }
+        internal AlcVersion Version { get; private set; }
+
+        internal int PlaybackDeviceCount { get { return available_playback_devices.Count; } }
+        internal int RecordingDeviceCount { get { return available_recording_devices.Count; } }
+
+        internal static string DefaultPlaybackDevice { get; private set; }
+        internal static string DefaultRecordingDevice { get; private set; }
+
+        internal string GetPlaybackDevice(int index)
         {
-            get
-            {
-                return available_playback_devices.AsReadOnly();
-            }
-        }
-        internal static IList<string> AvailableRecordingDevices
-        {
-            get
-            {
-                return available_recording_devices.AsReadOnly();
-            }
-        }
+            if (index < 0 || index > PlaybackDeviceCount)
+                throw new ArgumentOutOfRangeException();
 
-        #endregion All device strings
-
-        #region Default device strings
-
-        private static string default_playback_device;
-        internal static string DefaultPlaybackDevice
-        {
-            get
-            {
-                return default_playback_device;
-            }
+            return available_playback_devices[index];
         }
 
-        private static string default_recording_device;
-        internal static string DefaultRecordingDevice
+        internal string GetRecordingDevice(int index)
         {
-            get
-            {
-                return default_recording_device;
-            }
+            if (index < 0 || index > RecordingDeviceCount)
+                throw new ArgumentOutOfRangeException();
+
+            return available_recording_devices[index];
         }
 
-        #endregion Default device strings
-
-        #region Is OpenAL supported?
-
-        private static bool openal_supported = true;
-        internal static bool IsOpenALSupported
+        internal AudioDeviceEnumerator()
         {
-            get
-            {
-                return openal_supported;
-            }
+            Update();
         }
 
-        #endregion Is OpenAL supported?
-
-        #region Alc Version number
-
-        internal enum AlcVersion
+        internal void Update()
         {
-            Alc1_0,
-            Alc1_1
-        }
+            // Load all available audio devices into the available_*_devices lists.
 
-        private static AlcVersion version;
-        internal static AlcVersion Version
-        {
-            get
-            {
-                return version;
-            }
-        }
-
-        #endregion Alc Version number
-
-        #region Constructors
-
-        // Loads all available audio devices into the available_*_devices lists.
-        static AudioDeviceEnumerator()
-        {
             IntPtr dummy_device = IntPtr.Zero;
             ContextHandle dummy_context = ContextHandle.Zero;
 
@@ -141,21 +103,23 @@ namespace OpenTK.Audio
                 // Get a list of all known playback devices, using best extension available
                 if (Alc.IsExtensionPresent(IntPtr.Zero, "ALC_ENUMERATION_EXT"))
                 {
-                    version = AlcVersion.Alc1_1;
+                    Version = AlcVersion.Alc1_1;
                     if (Alc.IsExtensionPresent(IntPtr.Zero, "ALC_ENUMERATE_ALL_EXT"))
                     {
+                        available_playback_devices.Clear();
                         available_playback_devices.AddRange(Alc.GetString(IntPtr.Zero, AlcGetStringList.AllDevicesSpecifier));
                         default_playback_device = Alc.GetString(IntPtr.Zero, AlcGetString.DefaultAllDevicesSpecifier);
                     }
                     else
                     {
+                        available_playback_devices.Clear();
                         available_playback_devices.AddRange(Alc.GetString(IntPtr.Zero, AlcGetStringList.DeviceSpecifier));
-                        default_playback_device = Alc.GetString(IntPtr.Zero, AlcGetString.DefaultDeviceSpecifier);
+                        DefaultPlaybackDevice = Alc.GetString(IntPtr.Zero, AlcGetString.DefaultDeviceSpecifier);
                     }
                 }
                 else
                 {
-                    version = AlcVersion.Alc1_0;
+                    Version = AlcVersion.Alc1_0;
                     Debug.Print("Device enumeration extension not available. Failed to enumerate playback devices.");
                 }
                 AlcError playback_err = Alc.GetError(dummy_device);
@@ -163,10 +127,11 @@ namespace OpenTK.Audio
                     throw new AudioContextException("Alc Error occured when querying available playback devices. " + playback_err.ToString());
 
                 // Get a list of all known recording devices, at least ALC_ENUMERATION_EXT is needed too
-                if (version == AlcVersion.Alc1_1 && Alc.IsExtensionPresent(IntPtr.Zero, "ALC_EXT_CAPTURE"))
+                if (Version == AlcVersion.Alc1_1 && Alc.IsExtensionPresent(IntPtr.Zero, "ALC_EXT_CAPTURE"))
                 {
+                    available_recording_devices.Clear();
                     available_recording_devices.AddRange(Alc.GetString(IntPtr.Zero, AlcGetStringList.CaptureDeviceSpecifier));
-                    default_recording_device = Alc.GetString(IntPtr.Zero, AlcGetString.CaptureDefaultDeviceSpecifier);
+                    DefaultRecordingDevice = Alc.GetString(IntPtr.Zero, AlcGetString.CaptureDefaultDeviceSpecifier);
                 }
                 else
                 {
@@ -189,16 +154,15 @@ namespace OpenTK.Audio
 
                 Debug.WriteLine("Default recording device: " + default_recording_device);
 #endif
+                openal_supported = true;
             }
             catch (DllNotFoundException e)
             {
                 Trace.WriteLine(e.ToString());
-                openal_supported = false;
             }
             catch (AudioContextException ace)
             {
                 Trace.WriteLine(ace.ToString());
-                openal_supported = false;
             }
             finally
             {
@@ -212,7 +176,5 @@ namespace OpenTK.Audio
                     Alc.CloseDevice(dummy_device);
             }
         }
-
-        #endregion
     }
 }
