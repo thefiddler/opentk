@@ -227,7 +227,7 @@ namespace Bind
                 case "all":
                     {
                         Console.WriteLine("Using 'all' generator mode.");
-                        Console.WriteLine("Use '-mode:all,cl,es,gl,wayland' to select a specific mode.");
+                        Console.WriteLine("Use '-mode:all,cl,es,gl,wl' to select a specific mode.");
 
                         var desktop = Settings.Clone();
                         Generators.Add(new GL2Generator(desktop, dirName));
@@ -319,6 +319,7 @@ namespace Bind
                     Generators.Add(new CL20Generator(Settings.Clone(), dirName));
                     break;
 
+                case "wl":
                 case "wayland":
                     Generators.Add(new Wayland.ClientGenerator(Settings.Clone(), dirName));
                     break;
@@ -336,13 +337,13 @@ Available switches:
 -in:         Input directory (e.g. -in:../specs/)
 -out:        Output directory (e.g. -out:out)
 -ns:         Output namespace (e.g. -ns:OpenTK.Graphics).
-             Default: OpenTK.Graphics.OpenGL
+             Default: depends on -mode
 -namespace:  Same as -ns
 -class:      Output class (e.g. -class:GL3).
-             Default: GL/Wgl/Glu/Glx (depends on -mode)
--mode:       Generator mode (e.g. -mode:gl4).
+             Default: depends on -mode
+-mode:       Generator mode (e.g. -mode:gl).
              Default: all
-             Accepted: all/gl2/gl4/es10/es11/es20
+             Accepted: all,gl,cl,es,wl
 -o/-option:  Set advanced option. Available options:
     -o:tao   Tao compatibility mode.
     -o:enums Follow OpenGL instead .Net naming conventions.
