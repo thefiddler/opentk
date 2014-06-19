@@ -227,17 +227,20 @@ namespace Bind
                 case "all":
                     {
                         Console.WriteLine("Using 'all' generator mode.");
-                        Console.WriteLine("Use '-mode:all/gl2/gl4/es10/es11/es20/es30' to select a specific mode.");
+                        Console.WriteLine("Use '-mode:all,cl,es,gl,wayland' to select a specific mode.");
 
                         var desktop = Settings.Clone();
                         Generators.Add(new GL2Generator(desktop, dirName));
                         Generators.Add(new GL4Generator(desktop, dirName));
+                        Generators.Add(new ES10Generator(desktop, dirName));
                         Generators.Add(new ES11Generator(desktop, dirName));
                         Generators.Add(new ES20Generator(desktop, dirName));
                         Generators.Add(new ES30Generator(desktop, dirName));
                         Generators.Add(new CLGenerator(desktop, dirName));
+                        Generators.Add(new CL11Generator(desktop, dirName));
                         Generators.Add(new CL12Generator(desktop, dirName));
                         Generators.Add(new CL20Generator(desktop, dirName));
+                        Generators.Add(new Wayland.ClientGenerator(desktop, dirName));
 
                         /* Temporarily disabled
                         var android = Settings.Clone();
@@ -314,6 +317,10 @@ namespace Bind
 
                 case "cl20":
                     Generators.Add(new CL20Generator(Settings.Clone(), dirName));
+                    break;
+
+                case "wayland":
+                    Generators.Add(new Wayland.ClientGenerator(Settings.Clone(), dirName));
                     break;
 
                 default:
