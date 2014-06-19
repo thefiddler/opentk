@@ -37,7 +37,32 @@ namespace Bind.Wayland
         public ClientGenerator(Settings settings, string directory) :
             base(settings, directory)
         {
+            Settings.DefaultOutputPath = String.Format(
+                Settings.DefaultOutputPath, "Platform/Wayland/Bindings", "Client");
+            Settings.DefaultDocPath = String.Empty;
 
+            // Common settings for all OpenCL generators
+            Settings.DefaultTypeMapFile = "Wayland/wl.tm";
+            Settings.DefaultSignaturesFile = "../Wayland/client.xml";
+            Settings.DefaultOverridesFile = "../Wayland/overrides.xml";
+
+            Settings.FunctionPrefix = "wl";
+            Settings.ConstantPrefix = "WL_";
+            Settings.EnumPrefix = "wl";
+            Settings.OutputClass = "Client";
+
+            Settings.Compatibility |= Settings.Legacy.NoDebugHelpers;
+            Settings.Compatibility |= Settings.Legacy.UseDllImports;
+            //Settings.Compatibility |= Settings.Legacy.NoPublicUnsafeFunctions;
+            Settings.Compatibility |= Settings.Legacy.NoUnsignedOverloads;
+
+            Settings.DefaultOutputNamespace = "OpenTK.Platform.Wayland";
+            Settings.DefaultWrappersFile = "Client.cs";
+            Settings.DefaultEnumsFile = "Client.Enums.cs";
+            Settings.DefaultClassesFile = "Client.Extensions.cs";
+
+            Profile = "wl";
+            Version = "1.5";
         }
     }
 }

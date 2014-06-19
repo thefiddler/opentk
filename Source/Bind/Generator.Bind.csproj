@@ -55,7 +55,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <DebugType>full</DebugType>
-    <Commandlineparameters>-mode:cl</Commandlineparameters>
+    <Commandlineparameters>-mode:wl</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <BaseAddress>285212672</BaseAddress>
@@ -248,6 +248,12 @@
     <Compile Include="ES\ES20Generator.cs" />
     <Compile Include="ES\ES11Generator.cs" />
     <Compile Include="ES\ES10Generator.cs" />
+    <None Include="Specifications\Wayland\client.xml" />
+    <None Include="Specifications\Wayland\egl.xml" />
+    <None Include="Specifications\Wayland\server.xml" />
+    <None Include="Specifications\Wayland\signatures.xml" />
+    <None Include="Specifications\Wayland\wl.tm" />
+    <None Include="Specifications\Wayland\overrides.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Specifications\GL2\signatures.xml">
@@ -279,5 +285,6 @@
     <Folder Include="Specifications\Docs\" />
     <Folder Include="Wayland\" />
     <Folder Include="ES\" />
+    <Folder Include="Specifications\Wayland\" />
   </ItemGroup>
 </Project>

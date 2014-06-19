@@ -65,7 +65,8 @@ namespace CHeaderToXML
     {
         Header,
         Spec,
-        Xml
+        Xml,
+        Wayland
     }
 
     class EntryPoint
@@ -115,6 +116,7 @@ namespace CHeaderToXML
                     type == HeaderType.Header ? new ESCLParser { Prefix = prefix, Version = version } :
                     type == HeaderType.Spec ? new GLParser { Prefix = prefix, Version = version } :
                     type == HeaderType.Xml ? new GLXmlParser { Prefix = prefix, Version = version } :
+                    type == HeaderType.Wayland ? new WaylandParser { Prefix = prefix, Version = version } :
                     (Parser)null;
 
                 var sigs = headers.Select(h => parser.Parse(h)).ToList();
@@ -136,6 +138,7 @@ namespace CHeaderToXML
                 }
                 else
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
                     out_stream = new StreamWriter(path, false);
                 }
 
