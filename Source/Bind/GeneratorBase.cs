@@ -16,9 +16,9 @@ using Delegate=Bind.Structures.Delegate;
 using Enum=Bind.Structures.Enum;
 using Type=Bind.Structures.Type;
 
-namespace Bind.GL2
+namespace Bind
 {
-    abstract class Generator : IBind
+    abstract class GeneratorBase : IBind
     {
         #region Fields
 
@@ -54,7 +54,7 @@ namespace Bind.GL2
 
         #region Constructors
 
-        public Generator(Settings settings, string dirName)
+        public GeneratorBase(Settings settings, string dirName)
         {
             if (settings == null)
                 throw new ArgumentNullException("settings");

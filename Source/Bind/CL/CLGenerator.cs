@@ -9,7 +9,7 @@ using Enum=Bind.Structures.Enum;
 
 namespace Bind.CL
 {
-    class CLGenerator : Generator
+    class CLGenerator : GeneratorBase
     {
         public CLGenerator(Settings settings, string dirname)
             : base(settings, dirname ?? "CL10")

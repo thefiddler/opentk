@@ -10,7 +10,7 @@ using Enum=Bind.Structures.Enum;
 namespace Bind.ES
 {
     // Generation implementation for OpenGL ES 3.0
-    class ES30Generator : Generator
+    class ES30Generator : GeneratorBase
     {
         public ES30Generator(Settings settings, string dirName)
             : base(settings, dirName)

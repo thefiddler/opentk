@@ -33,7 +33,7 @@ using System.IO;
 namespace Bind.GL2
 {
 
-    class GL2Generator : Generator
+    class GL2Generator : GeneratorBase
     {
         public GL2Generator(Settings settings, string dirname)
             : base(settings, dirname)
