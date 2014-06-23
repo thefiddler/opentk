@@ -50,7 +50,9 @@ namespace Bind
             "(sh|ib|[tdrey]s|[eE]n[vd]|bled" +
             "|Attrib|Access|Boolean|Coord|Depth|Feedbacks|Finish|Flag" +
             "|Groups|IDs|Indexed|Instanced|Kernels|Pixels|Queries|Status|Tess|Through" +
-            "|Uniforms|Varyings|Weight|Width)$",
+            "|Uniforms|Varyings|Weight|Width" + 
+            "|read|fd" +
+            ")$",
             RegexOptions.Compiled);
         static readonly Regex EndingsAddV = new Regex("^0", RegexOptions.Compiled);
 
@@ -148,51 +150,48 @@ namespace Bind
             foreach (var version in apiversion.Split('|'))
             {
                 var class_elements = GetClasses(overrides, apiname, version);
-                foreach (XPathNavigator element in class_elements)
+                foreach (XPathNavigator @class in class_elements)
                 {
-                    foreach (XPathNavigator @class in element.Select("add"))
+                    var c = new Class
                     {
-                        var c = new Class
-                        {
-                            Name = @class.GetAttribute("name", String.Empty),
-                        };
-                        foreach (XPathNavigator member in @class.Select("function"))
-                        {
-                            var name = member.GetAttribute("name", String.Empty);
-                            bool is_static;
-                            Boolean.TryParse(member.GetAttribute("static", String.Empty), out is_static);
+                        Name = @class.GetAttribute("name", String.Empty),
+                    };
+                    foreach (XPathNavigator member in @class.Select("function"))
+                    {
+                        var name = member.GetAttribute("name", String.Empty);
+                        bool is_static;
+                        Boolean.TryParse(member.GetAttribute("static", String.Empty), out is_static);
 
-                            var methods = wrappers["Core"].Where(w => w.Name == name);
-                            foreach (var method in methods)
-                            {
-                                var m = new Function(method);
-                                m.IsExtensionMethod = !is_static;
-                                m.IsStaticMethod = is_static;
-                                c.Methods.Add(m);
-                            }
-                        }
-                        foreach (XPathNavigator member in @class.Select("field"))
+                        var methods = wrappers["Core"].Where(w => w.Name == name);
+                        foreach (var method in methods)
                         {
-                            var name = member.GetAttribute("name", String.Empty);
-                            var type = member.GetAttribute("type", String.Empty);
-                            Visibility vis;
-                            switch (member.GetAttribute("visibility", String.Empty))
-                            {
-                                case "public":
-                                    vis = Visibility.Public;
-                                    break;
-                                case "internal":
-                                    vis = Visibility.Internal;
-                                    break;
-                                default:
-                                    vis = Visibility.Private;
-                                    break;
-                            }
-
-                            c.Fields.Add(new Field(new Type { QualifiedType = type }, name, vis));
+                            var m = new Function(method);
+                            m.IsExtensionMethod = !is_static;
+                            m.IsStaticMethod = is_static;
+                            c.Methods.Add(m);
                         }
-                        classes.Add(c);
                     }
+                    foreach (XPathNavigator member in @class.Select("field"))
+                    {
+                        var name = member.GetAttribute("name", String.Empty);
+                        var type = member.GetAttribute("type", String.Empty);
+                        Visibility vis;
+                        switch (member.GetAttribute("visibility", String.Empty))
+                        {
+                            case "public":
+                                vis = Visibility.Public;
+                                break;
+                            case "internal":
+                                vis = Visibility.Internal;
+                                break;
+                            default:
+                                vis = Visibility.Private;
+                                break;
+                        }
+
+                        c.Fields.Add(new Field(new Type { QualifiedType = type }, name, vis));
+                    }
+                    classes.Add(c);
                 }
             }
         }
@@ -317,7 +316,9 @@ namespace Bind
 
         static string GetClassPath(string apiname, string apiversion)
         {
-            return GetPath("classes", apiname, apiversion, String.Empty, String.Empty);
+            return String.Format("{0}/add|{1}/class",
+                GetPath("classes", apiname, apiversion, String.Empty, String.Empty),
+                GetPath("add", apiname, apiversion, String.Empty, String.Empty));
         }
 
         Bind.Structures.Type TranslateType(Bind.Structures.Type type,
@@ -569,6 +570,57 @@ namespace Bind
         void TrimName(Function f)
         {
             f.TrimmedName = GetTrimmedName(f);
+        }
+
+        /// \internal
+        /// <summary>
+        /// Translates a function name from "name_like_this" to "NameLikeThis".
+        /// </summary>
+        /// <param name="f">The function to translate.</param>
+        void TranslateName(Function f)
+        {
+            string s = f.TrimmedName;
+
+            // Translate the function name to match .Net naming conventions
+            bool name_contains_underscore = s.Contains("_");
+            if (name_contains_underscore)
+            {
+                StringBuilder translator = new StringBuilder(s.Length);
+
+                bool next_char_uppercase = true;
+                bool is_after_digit = false;
+
+                foreach (char c in s)
+                {
+                    if (c == '_' || c == '-')
+                    {
+                        next_char_uppercase = true;
+                        continue; // do not add these chars to output
+                    }
+                    else if (Char.IsDigit(c))
+                    {
+                        translator.Append(c);
+                        is_after_digit = true;
+                    }
+                    else
+                    {
+                        // Check for common 'digit'-'letter' abbreviations:
+                        // 2D, 3D, R3G3B2, etc. The abbreviated characters
+                        // should be made upper case.
+                        if (is_after_digit && (c == 'D' || c == 'R' || c == 'G' || c == 'B' || c == 'A'))
+                        {
+                            next_char_uppercase = true;
+                        }
+                        translator.Append(next_char_uppercase ? Char.ToUpper(c) : Char.ToLower(c));
+                        is_after_digit = next_char_uppercase = false;
+                    }
+                }
+
+                translator[0] = Char.ToUpper(translator[0]);
+                s = translator.ToString();
+            }
+
+            f.TrimmedName = s;
         }
 
         static void ApplyParameterReplacement(Delegate d, XPathNavigator function_override)
@@ -1068,6 +1120,7 @@ namespace Bind
         {
             Function f = new Function(d);
             TrimName(f);
+            TranslateName(f);
 
             WrapReturnType(f);
             foreach (var wrapper in WrapParameters(f, enums))
