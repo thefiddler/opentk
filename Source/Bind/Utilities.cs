@@ -162,6 +162,7 @@ namespace Bind
         static readonly List<string> CSharpKeywords = new List<string>(
             new string[]
             {
+                "args",
                 "abstract", "event", "new", "struct",
                 "as", "explicit", "null", "switch",
                 "base", "extern", "object", "this",
