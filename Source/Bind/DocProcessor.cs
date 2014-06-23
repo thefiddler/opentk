@@ -152,7 +152,7 @@ namespace Bind
                         mml = XElement.Parse(removed).Value;
                         text = text.Insert(m.Index, mml);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                     }
                 }
