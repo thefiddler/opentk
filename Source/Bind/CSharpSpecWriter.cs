@@ -177,7 +177,7 @@ namespace Bind
                 sw.WriteLine("/// <summary>");
                 sw.WriteLine("/// Defines methods to simplify {0} usage.", c.Name);
                 sw.WriteLine("/// </summary>");
-                sw.WriteLine("public partial struct {0} : IComparable<{0}>, IEquatable<{0}>", c.Name);
+                sw.WriteLine("partial struct {0} : IComparable<{0}>, IEquatable<{0}>", c.Name);
                 sw.WriteLine("{");
                 sw.Indent();
                 foreach (var field in c.Fields.Values.SelectMany(f => f).OrderBy(m => m))
@@ -309,7 +309,7 @@ namespace Bind
                 sw.WriteLine("/// <summary>");
                 sw.WriteLine(String.Format("/// Defines methods to simplify {0} usage.", c.Name));
                 sw.WriteLine("/// </summary>");
-                sw.WriteLine(String.Format("public static partial class {0}Extensions", c.Name));
+                sw.WriteLine(String.Format("static partial class {0}Extensions", c.Name));
                 sw.WriteLine("{");
                 sw.Indent();
                 foreach (var method in c.Methods.Values
@@ -1034,7 +1034,7 @@ namespace Bind
 
             sb.Append(Settings.OutputClass);
             sb.Append(".");
-            sb.Append(f.Name);
+            sb.Append(f.TrimmedName);
             sb.Append("(");
             if (f.Parameters.Count > 0)
             {
