@@ -1,138 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <signatures version="1">
-  <add name="axis">
-    <token name="vertical_scroll" value="0" />
-    <token name="horizontal_scroll" value="1" />
-  </add>
-  <add name="button_state">
-    <token name="released" value="0" />
-    <token name="pressed" value="1" />
-  </add>
-  <add name="capability">
-    <token name="pointer" value="1" />
-    <token name="keyboard" value="2" />
-    <token name="touch" value="4" />
-  </add>
-  <add name="error">
-    <token name="bad_surface" value="0" />
-    <token name="bad_surface" value="0" />
-    <token name="invalid_format" value="0" />
-    <token name="invalid_object" value="0" />
-    <token name="invalid_scale" value="0" />
-    <token name="invalid_method" value="1" />
-    <token name="invalid_stride" value="1" />
-    <token name="invalid_transform" value="1" />
-    <token name="invalid_fd" value="2" />
-    <token name="no_memory" value="2" />
-  </add>
-  <add name="format">
-    <token name="argb8888" value="0" />
-    <token name="c8" value="0x20203843" />
-    <token name="bgra1010102" value="0x30334142" />
-    <token name="rgba1010102" value="0x30334152" />
-    <token name="abgr2101010" value="0x30334241" />
-    <token name="xbgr2101010" value="0x30334258" />
-    <token name="argb2101010" value="0x30335241" />
-    <token name="xrgb2101010" value="0x30335258" />
-    <token name="bgrx1010102" value="0x30335842" />
-    <token name="rgbx1010102" value="0x30335852" />
-    <token name="yuv411" value="0x31315559" />
-    <token name="yvu411" value="0x31315659" />
-    <token name="nv21" value="0x3132564e" />
-    <token name="nv61" value="0x3136564e" />
-    <token name="bgra4444" value="0x32314142" />
-    <token name="rgba4444" value="0x32314152" />
-    <token name="abgr4444" value="0x32314241" />
-    <token name="xbgr4444" value="0x32314258" />
-    <token name="argb4444" value="0x32315241" />
-    <token name="xrgb4444" value="0x32315258" />
-    <token name="yuv420" value="0x32315559" />
-    <token name="nv12" value="0x3231564e" />
-    <token name="yvu420" value="0x32315659" />
-    <token name="bgrx4444" value="0x32315842" />
-    <token name="rgbx4444" value="0x32315852" />
-    <token name="bgra8888" value="0x34324142" />
-    <token name="rgba8888" value="0x34324152" />
-    <token name="abgr8888" value="0x34324241" />
-    <token name="xbgr8888" value="0x34324258" />
-    <token name="bgr888" value="0x34324742" />
-    <token name="rgb888" value="0x34324752" />
-    <token name="yuv444" value="0x34325559" />
-    <token name="yvu444" value="0x34325659" />
-    <token name="bgrx8888" value="0x34325842" />
-    <token name="rgbx8888" value="0x34325852" />
-    <token name="bgra5551" value="0x35314142" />
-    <token name="rgba5551" value="0x35314152" />
-    <token name="abgr1555" value="0x35314241" />
-    <token name="xbgr1555" value="0x35314258" />
-    <token name="argb1555" value="0x35315241" />
-    <token name="xrgb1555" value="0x35315258" />
-    <token name="bgrx5551" value="0x35315842" />
-    <token name="rgbx5551" value="0x35315852" />
-    <token name="bgr565" value="0x36314742" />
-    <token name="rgb565" value="0x36314752" />
-    <token name="yuv422" value="0x36315559" />
-    <token name="nv16" value="0x3631564e" />
-    <token name="yvu422" value="0x36315659" />
-    <token name="rgb332" value="0x38424752" />
-    <token name="bgr233" value="0x38524742" />
-    <token name="yvu410" value="0x39555659" />
-    <token name="yuv410" value="0x39565559" />
-    <token name="yvyu" value="0x55595659" />
-    <token name="ayuv" value="0x56555941" />
-    <token name="yuyv" value="0x56595559" />
-    <token name="vyuy" value="0x59555956" />
-    <token name="uyvy" value="0x59565955" />
-    <token name="xrgb8888" value="1" />
-  </add>
-  <add name="fullscreen_method">
-    <token name="default" value="0" />
-    <token name="scale" value="1" />
-    <token name="driver" value="2" />
-    <token name="fill" value="3" />
-  </add>
-  <add name="key_state">
-    <token name="released" value="0" />
-    <token name="pressed" value="1" />
-  </add>
-  <add name="keymap_format">
-    <token name="no_keymap" value="0" />
-    <token name="xkb_v1" value="1" />
-  </add>
-  <add name="mode">
-    <token name="current" value="0x1" />
-    <token name="preferred" value="0x2" />
-  </add>
-  <add name="resize">
-    <token name="none" value="0" />
-    <token name="top" value="1" />
-    <token name="bottom_right" value="10" />
-    <token name="bottom" value="2" />
-    <token name="left" value="4" />
-    <token name="top_left" value="5" />
-    <token name="bottom_left" value="6" />
-    <token name="right" value="8" />
-    <token name="top_right" value="9" />
-  </add>
-  <add name="subpixel">
-    <token name="unknown" value="0" />
-    <token name="none" value="1" />
-    <token name="horizontal_rgb" value="2" />
-    <token name="horizontal_bgr" value="3" />
-    <token name="vertical_rgb" value="4" />
-    <token name="vertical_bgr" value="5" />
-  </add>
-  <add name="transform">
-    <token name="normal" value="0" />
-    <token name="90" value="1" />
-    <token name="180" value="2" />
-    <token name="270" value="3" />
-    <token name="flipped" value="4" />
-    <token name="flipped_90" value="5" />
-    <token name="flipped_180" value="6" />
-    <token name="flipped_270" value="7" />
-  </add>
-  <add name="transient">
-    <token name="inactive" value="0x1" />
+  <add name="wl">
+    <enum name="axis">
+      <token name="vertical_scroll" value="0" />
+      <token name="horizontal_scroll" value="1" />
+    </enum>
+    <enum name="button_state">
+      <token name="released" value="0" />
+      <token name="pressed" value="1" />
+    </enum>
+    <enum name="capability">
+      <token name="pointer" value="1" />
+      <token name="keyboard" value="2" />
+      <token name="touch" value="4" />
+    </enum>
+    <enum name="error">
+      <token name="bad_surface" value="0" />
+      <token name="bad_surface" value="0" />
+      <token name="invalid_format" value="0" />
+      <token name="invalid_object" value="0" />
+      <token name="invalid_scale" value="0" />
+      <token name="invalid_method" value="1" />
+      <token name="invalid_stride" value="1" />
+      <token name="invalid_transform" value="1" />
+      <token name="invalid_fd" value="2" />
+      <token name="no_memory" value="2" />
+    </enum>
+    <enum name="format">
+      <token name="argb8888" value="0" />
+      <token name="c8" value="0x20203843" />
+      <token name="bgra1010102" value="0x30334142" />
+      <token name="rgba1010102" value="0x30334152" />
+      <token name="abgr2101010" value="0x30334241" />
+      <token name="xbgr2101010" value="0x30334258" />
+      <token name="argb2101010" value="0x30335241" />
+      <token name="xrgb2101010" value="0x30335258" />
+      <token name="bgrx1010102" value="0x30335842" />
+      <token name="rgbx1010102" value="0x30335852" />
+      <token name="yuv411" value="0x31315559" />
+      <token name="yvu411" value="0x31315659" />
+      <token name="nv21" value="0x3132564e" />
+      <token name="nv61" value="0x3136564e" />
+      <token name="bgra4444" value="0x32314142" />
+      <token name="rgba4444" value="0x32314152" />
+      <token name="abgr4444" value="0x32314241" />
+      <token name="xbgr4444" value="0x32314258" />
+      <token name="argb4444" value="0x32315241" />
+      <token name="xrgb4444" value="0x32315258" />
+      <token name="yuv420" value="0x32315559" />
+      <token name="nv12" value="0x3231564e" />
+      <token name="yvu420" value="0x32315659" />
+      <token name="bgrx4444" value="0x32315842" />
+      <token name="rgbx4444" value="0x32315852" />
+      <token name="bgra8888" value="0x34324142" />
+      <token name="rgba8888" value="0x34324152" />
+      <token name="abgr8888" value="0x34324241" />
+      <token name="xbgr8888" value="0x34324258" />
+      <token name="bgr888" value="0x34324742" />
+      <token name="rgb888" value="0x34324752" />
+      <token name="yuv444" value="0x34325559" />
+      <token name="yvu444" value="0x34325659" />
+      <token name="bgrx8888" value="0x34325842" />
+      <token name="rgbx8888" value="0x34325852" />
+      <token name="bgra5551" value="0x35314142" />
+      <token name="rgba5551" value="0x35314152" />
+      <token name="abgr1555" value="0x35314241" />
+      <token name="xbgr1555" value="0x35314258" />
+      <token name="argb1555" value="0x35315241" />
+      <token name="xrgb1555" value="0x35315258" />
+      <token name="bgrx5551" value="0x35315842" />
+      <token name="rgbx5551" value="0x35315852" />
+      <token name="bgr565" value="0x36314742" />
+      <token name="rgb565" value="0x36314752" />
+      <token name="yuv422" value="0x36315559" />
+      <token name="nv16" value="0x3631564e" />
+      <token name="yvu422" value="0x36315659" />
+      <token name="rgb332" value="0x38424752" />
+      <token name="bgr233" value="0x38524742" />
+      <token name="yvu410" value="0x39555659" />
+      <token name="yuv410" value="0x39565559" />
+      <token name="yvyu" value="0x55595659" />
+      <token name="ayuv" value="0x56555941" />
+      <token name="yuyv" value="0x56595559" />
+      <token name="vyuy" value="0x59555956" />
+      <token name="uyvy" value="0x59565955" />
+      <token name="xrgb8888" value="1" />
+    </enum>
+    <enum name="fullscreen_method">
+      <token name="default" value="0" />
+      <token name="scale" value="1" />
+      <token name="driver" value="2" />
+      <token name="fill" value="3" />
+    </enum>
+    <enum name="key_state">
+      <token name="released" value="0" />
+      <token name="pressed" value="1" />
+    </enum>
+    <enum name="keymap_format">
+      <token name="no_keymap" value="0" />
+      <token name="xkb_v1" value="1" />
+    </enum>
+    <enum name="mode">
+      <token name="current" value="0x1" />
+      <token name="preferred" value="0x2" />
+    </enum>
+    <enum name="resize">
+      <token name="none" value="0" />
+      <token name="top" value="1" />
+      <token name="bottom_right" value="10" />
+      <token name="bottom" value="2" />
+      <token name="left" value="4" />
+      <token name="top_left" value="5" />
+      <token name="bottom_left" value="6" />
+      <token name="right" value="8" />
+      <token name="top_right" value="9" />
+    </enum>
+    <enum name="subpixel">
+      <token name="unknown" value="0" />
+      <token name="none" value="1" />
+      <token name="horizontal_rgb" value="2" />
+      <token name="horizontal_bgr" value="3" />
+      <token name="vertical_rgb" value="4" />
+      <token name="vertical_bgr" value="5" />
+    </enum>
+    <enum name="transform">
+      <token name="normal" value="0" />
+      <token name="90" value="1" />
+      <token name="180" value="2" />
+      <token name="270" value="3" />
+      <token name="flipped" value="4" />
+      <token name="flipped_90" value="5" />
+      <token name="flipped_180" value="6" />
+      <token name="flipped_270" value="7" />
+    </enum>
+    <enum name="transient">
+      <token name="inactive" value="0x1" />
+    </enum>
   </add>
 </signatures>
