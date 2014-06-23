@@ -28,3 +28,8 @@
 #endregion
 
 uint32_t, uint
+wl_argument, WaylandArgument
+wl_display, WaylandDisplay
+wl_event_queue, WaylandEventQueue
+wl_proxy, WaylandProxy
+wl_interface, WaylandInterface
