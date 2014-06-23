@@ -768,11 +768,10 @@
     <Compile Include="Graphics\ES10\ES10.ErrorHelper.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Platform\Wayland\Bindings\Client.cs" />
-    <Compile Include="Platform\Wayland\Bindings\Proxy.cs" />
     <Compile Include="Platform\Wayland\Bindings\Client\Client.Enums.cs" />
     <Compile Include="Platform\Wayland\Bindings\Client\Client.Extensions.cs" />
     <Compile Include="Platform\Wayland\Bindings\Client\Client.cs" />
+    <Compile Include="Platform\Wayland\Bindings\Client\Client.Helper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
