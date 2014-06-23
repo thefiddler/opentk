@@ -263,8 +263,9 @@ namespace Bind
                 // Translate the constant's name to match .Net naming conventions
                 bool name_is_all_caps = s.AsEnumerable().All(c => Char.IsLetter(c) ? Char.IsUpper(c) : true);
                 bool name_contains_underscore = s.Contains("_");
+                bool name_starts_with_small = Char.IsLower(s[0]);
                 if ((Settings.Compatibility & Settings.Legacy.NoAdvancedEnumProcessing) == Settings.Legacy.None &&
-                (name_is_all_caps || name_contains_underscore))
+                    (name_is_all_caps || name_contains_underscore || name_starts_with_small))
                 {
                     bool next_char_uppercase = true;
                     bool is_after_digit = false;
