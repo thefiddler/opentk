@@ -31,210 +31,213 @@ THE SOFTWARE.
 -->
 
 <signatures>
-  <!-- wl_display -->
+  <!-- display -->
   <add name="wl">
-    <class name="wl_display">
+    <enum name="ErrorCode">
+      <reuse enum="Error" />
+    </enum>
+    <class name="WaylandDisplay">
       <field name="Value" type="IntPtr" visibility="internal" />
-      <function name="wl_display_connect" />
-      <function name="wl_display_connect_to_fd" />
-      <function name="wl_display_disconnect" />
-      <function name="wl_display_get_fd" />
-      <function name="wl_display_dispatch" />
-      <function name="wl_display_dispatch_queue" />
-      <function name="wl_display_dispatch_queue_pending" />
-      <function name="wl_display_dispatch_pending" />
-      <function name="wl_display_get_error" />
-      <function name="wl_display_flush" />
-      <function name="wl_display_connect" />
-      <function name="wl_display_roundtrip" />
-      <function name="wl_display_create_queue" />
-      <function name="wl_display_prepare_read_queue" />
-      <function name="wl_display_prepare_read" />
-      <function name="wl_display_cancel_read" />
-      <function name="wl_display_read_events" />
+      <function name="display_connect" />
+      <function name="display_connect_to_fd" />
+      <function name="display_disconnect" />
+      <function name="display_get_fd" />
+      <function name="display_dispatch" />
+      <function name="display_dispatch_queue" />
+      <function name="display_dispatch_queue_pending" />
+      <function name="display_dispatch_pending" />
+      <function name="display_get_error" />
+      <function name="display_flush" />
+      <function name="display_roundtrip" />
+      <function name="display_create_queue" />
+      <function name="display_prepare_read_queue" />
+      <function name="display_prepare_read" />
+      <function name="display_cancel_read" />
+      <function name="display_read_events" />
     </class>
-    <function name="wl_display_connect">
+    <function name="display_connect">
       <param name="name" type="const char *" flow="in" />
       <returns type="wl_display" />
     </function>
-    <function name="wl_display_connect_to_fd">
+    <function name="display_connect_to_fd">
       <param name="fd" type="int" flow="in" />
       <returns type="wl_display" />
     </function>
-    <function name="wl_display_disconnect">
+    <function name="display_disconnect">
       <param name="display" type="wl_display" flow="in" />
       <returns type="void" />
     </function>
-    <function name="wl_display_get_fd">
+    <function name="display_get_fd">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_dispatch">
+    <function name="display_dispatch">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_dispatch_queue">
-      <param name="display" type="wl_display" flow="in" />
-      <param name="queue" type="wl_event_queue" flow="in" />
-      <returns type="int" />
-    </function>
-    <function name="wl_display_dispatch_queue">
+    <function name="display_dispatch_queue">
       <param name="display" type="wl_display" flow="in" />
       <param name="queue" type="wl_event_queue" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_dispatch_queue_pending">
+    <function name="display_dispatch_queue">
       <param name="display" type="wl_display" flow="in" />
       <param name="queue" type="wl_event_queue" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_dispatch_pending">
+    <function name="display_dispatch_queue_pending">
+      <param name="display" type="wl_display" flow="in" />
+      <param name="queue" type="wl_event_queue" flow="in" />
+      <returns type="int" />
+    </function>
+    <function name="display_dispatch_pending">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_get_error">
+    <function name="display_get_error">
       <param name="display" type="wl_display" flow="in" />
       <returns type="ErrorCode" />
     </function>
-    <function name="wl_display_flush">
+    <function name="display_flush">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_roundtrip">
+    <function name="display_roundtrip">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_create_queue">
+    <function name="display_create_queue">
       <param name="display" type="wl_display" flow="in" />
       <returns type="wl_event_queue" />
     </function>
-    <function name="wl_display_prepare_read_queue">
+    <function name="display_prepare_read_queue">
       <param name="display" type="wl_display" flow="in" />
       <param name="queue" type="wl_event_queue" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_prepare_read">
+    <function name="display_prepare_read">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_display_cancel_read">
+    <function name="display_cancel_read">
       <param name="display" type="wl_display" flow="in" />
       <returns type="void" />
     </function>
-    <function name="wl_display_read_events">
+    <function name="display_read_events">
       <param name="display" type="wl_display" flow="in" />
       <returns type="int" />
     </function>
   </add>
 
-  <!-- wl_event_queue -->
+  <!-- event_queue -->
   <add name="wl">
-    <class name="wl_event_queue">
+    <class name="WaylandEventQueue">
       <field name="Value" type="IntPtr" visibility="internal" />
-      <function name="wl_event_queue_destroy" />
+      <function name="event_queue_destroy" />
     </class>
-    <function name="wl_event_queue_destroy">
+    <function name="event_queue_destroy">
       <param name="queue" type="wl_event_queue" flow="in" />
       <returns type="void" />
     </function>
   </add>
 
-  <!-- wl_proxy -->
+  <!-- proxy -->
   <add name="wl">
-    <class name="wl_proxy">
+    <class name="WaylandProxy">
       <field name="Value" type="IntPtr" visibility="internal" />
-      <function name="wl_proxy_marshal" />
-      <function name="wl_proxy_marshal_array" />
-      <function name="wl_proxy_create" />
-      <function name="wl_proxy_marshal_constructor" />
-      <function name="wl_proxy_marshal_array_constructor" />
-      <function name="wl_proxy_destroy" />
-      <function name="wl_proxy_add_listener" />
-      <function name="wl_proxy_get_listener" />
-      <function name="wl_proxy_add_dispatcher" />
-      <function name="wl_proxy_set_user_data" />
-      <function name="wl_proxy_get_user_data" />
-      <function name="wl_proxy_get_id" />
-      <function name="wl_proxy_get_class" />
-      <function name="wl_proxy_set_queue" />
+      <function name="proxy_marshal" />
+      <function name="proxy_marshal_array" />
+      <function name="proxy_create" />
+      <function name="proxy_marshal_constructor" />
+      <function name="proxy_marshal_array_constructor" />
+      <function name="proxy_destroy" />
+      <function name="proxy_add_listener" />
+      <function name="proxy_get_listener" />
+      <function name="proxy_add_dispatcher" />
+      <function name="proxy_set_user_data" />
+      <function name="proxy_get_user_data" />
+      <function name="proxy_get_id" />
+      <function name="proxy_get_class" />
+      <function name="proxy_set_queue" />
     </class>
     <!-- todo: varargs
-    <function name="wl_proxy_marshal">
+    <function name="proxy_marshal">
       <param name="proxy" type="wl_proxy" flow="in" />
       <param name="opcode" type="uint32_t" flow="in" />
       <returns type="void" />
     </function>
     -->
-    <function name="wl_proxy_marshal_array">
+    <function name="proxy_marshal_array">
       <param name="proxy" type="wl_proxy" flow="in" />
       <param name="opcode" type="uint32_t" flow="in" />
       <param name="args" type="wl_argument*" flow="in" />
       <returns type="void" />
     </function>
     <!-- todo: varargs
-    <function name="wl_proxy_create">
+    <function name="proxy_create">
       <param name="factory" type="wl_proxy" flow="in" />
       <param name="interface" type="wl_interface" flow="in" />
       <returns type="wl_proxy" />
     </function>
     -->
-    <function name="wl_proxy_marshal_array_constructor">
+    <function name="proxy_marshal_array_constructor">
       <param name="factory" type="wl_proxy" flow="in" />
       <param name="opcode" type="uint32_t" flow="in" />
       <param name="args" type="wl_argument*" flow="in" />
       <param name="interface" type="wl_interface" flow="in" />
       <returns type="wl_proxy" />
     </function>
-    <function name="wl_proxy_destroy">
+    <function name="proxy_destroy">
       <param name="proxy" type="wl_proxy" flow="in" />
       <returns type="void" />
     </function>
-    <function name="wl_proxy_add_listener">
+    <function name="proxy_add_listener">
       <param name="proxy" type="wl_proxy" flow="in" />
       <param name="callback" type="ListenerCallback" flow="in" />
       <param name="data" type="IntPtr" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_proxy_get_listener">
+    <function name="proxy_get_listener">
       <param name="proxy" type="wl_proxy" flow="in" />
       <returns type="IntPtr" />
     </function>
-    <function name="wl_proxy_add_dispatcher">
+    <function name="proxy_add_dispatcher">
       <param name="proxy" type="wl_proxy" flow="in" />
       <param name="dispatcher_func" type="DispatcherCallback" flow="in" />
       <param name="dispatcher_data" type="IntPtr" flow="in" />
       <param name="data" type="IntPtr" flow="in" />
       <returns type="int" />
     </function>
-    <function name="wl_proxy_set_user_data">
+    <function name="proxy_set_user_data">
       <param name="proxy" type="wl_proxy" flow="in" />
       <param name="user_data" type="IntPtr" flow="in" />
       <returns type="void" />
     </function>
-    <function name="wl_proxy_get_user_data">
+    <function name="proxy_get_user_data">
       <param name="proxy" type="wl_proxy" flow="in" />
       <returns type="IntPtr" />
     </function>
-    <function name="wl_proxy_get_id">
+    <function name="proxy_get_id">
       <param name="proxy" type="wl_proxy" flow="in" />
       <returns type="uint32_t" />
     </function>
-    <function name="wl_proxy_get_class">
+    <function name="proxy_get_class">
       <param name="proxy" type="wl_proxy" flow="in" />
       <returns type="char*" />
     </function>
-    <function name="wl_proxy_set_queue">
+    <function name="proxy_set_queue">
       <param name="proxy" type="wl_proxy" flow="in" />
       <param name="queue" type="wl_event_queue" flow="in" />
       <returns type="void" />
     </function>
   </add>
 
-  <!-- Log -->
+  <!-- Log (todo: varargs callback)
   <add name="wl">
-    <function name="wl_log_set_handler_client">
+    <function name="log_set_handler_client">
       <param name="handler" type="LogCallback" flow="in" />
       <returns type="void" />
     </function>
   </add>
+  -->
 </signatures>
