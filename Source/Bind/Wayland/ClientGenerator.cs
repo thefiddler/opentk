@@ -43,8 +43,8 @@ namespace Bind.Wayland
 
             // Common settings for all OpenCL generators
             Settings.DefaultTypeMapFile = "Wayland/wl.tm";
-            Settings.DefaultSignaturesFile = "../Wayland/client.xml";
-            Settings.DefaultOverridesFile = "../Wayland/overrides.xml";
+            Settings.DefaultSignaturesFile = "../Wayland/signatures.xml";
+            Settings.DefaultOverridesFile = "../Wayland/client.xml";
 
             Settings.FunctionPrefix = "wl";
             Settings.ConstantPrefix = "WL_";
