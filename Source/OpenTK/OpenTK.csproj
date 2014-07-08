@@ -768,6 +768,10 @@
     <Compile Include="Graphics\ES10\ES10.ErrorHelper.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Platform\NaCL\PepperPlatformFactory.cs" />
+    <Compile Include="Platform\NaCL\PepperNativeWindow.cs" />
+    <Compile Include="Platform\NaCL\PepperDisplayDriver.cs" />
+    <Compile Include="Platform\NaCL\PepperGraphicsContext.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -803,5 +807,7 @@
     <Folder Include="Extensions\" />
     <Folder Include="Compute\CL11\" />
     <Folder Include="Graphics\ES10\" />
+    <Folder Include="Platform\NaCL\" />
+    <Folder Include="Platform\NaCL\Bindings\" />
   </ItemGroup>
 </Project>
