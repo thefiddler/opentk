@@ -1351,6 +1351,7 @@ namespace OpenTK.Platform.SDL2
 
     #region Structs
 
+    [StructLayout(LayoutKind.Sequential)]
     struct ControllerAxisEvent
     {
         public EventType Type;
@@ -1364,6 +1365,7 @@ namespace OpenTK.Platform.SDL2
         ushort padding4;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct ControllerButtonEvent
     {
         public EventType Type;
@@ -1375,6 +1377,7 @@ namespace OpenTK.Platform.SDL2
         byte padding2;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct ControllerDeviceEvent
     {
         public EventType Type;
@@ -1386,6 +1389,7 @@ namespace OpenTK.Platform.SDL2
         public int Which;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct DisplayMode
     {
         public uint Format;
@@ -1437,8 +1441,10 @@ namespace OpenTK.Platform.SDL2
         public UserEvent user;
         [FieldOffset(0)]
         public SysWMEvent syswm;
+#endif
         [FieldOffset(0)]
         public TouchFingerEvent tfinger;
+#if false
         [FieldOffset(0)]
         public MultiGestureEvent mgesture;
         [FieldOffset(0)]
@@ -1470,6 +1476,7 @@ namespace OpenTK.Platform.SDL2
         public int HatMask;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct JoyAxisEvent
     {
         public EventType Type;
@@ -1483,6 +1490,7 @@ namespace OpenTK.Platform.SDL2
         UInt16 padding4;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct JoyBallEvent
     {
         public EventType Type;
@@ -1496,6 +1504,7 @@ namespace OpenTK.Platform.SDL2
         public short Yrel;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct JoyButtonEvent
     {
         public EventType Type;
@@ -1507,6 +1516,7 @@ namespace OpenTK.Platform.SDL2
         byte padding2;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct JoyDeviceEvent
     {
         public EventType Type;
@@ -1514,6 +1524,7 @@ namespace OpenTK.Platform.SDL2
         public int Which;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct JoyHatEvent
     {
         public EventType Type;
@@ -1525,6 +1536,7 @@ namespace OpenTK.Platform.SDL2
         byte padding2;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct JoystickGuid
     {
         unsafe fixed byte data[16];
@@ -1545,6 +1557,7 @@ namespace OpenTK.Platform.SDL2
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct KeyboardEvent
     {
         public EventType Type;
@@ -1557,6 +1570,7 @@ namespace OpenTK.Platform.SDL2
         public Keysym Keysym;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct Keysym
     {
         public Scancode Scancode;
@@ -1566,6 +1580,7 @@ namespace OpenTK.Platform.SDL2
         public uint Unicode;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct MouseButtonEvent
     {
         public EventType Type;
@@ -1580,6 +1595,7 @@ namespace OpenTK.Platform.SDL2
         public Int32 Y;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct MouseMotionEvent
     {
         public EventType Type;
@@ -1593,6 +1609,7 @@ namespace OpenTK.Platform.SDL2
         public Int32 Yrel;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct MouseWheelEvent
     {
         public EventType Type;
@@ -1618,6 +1635,7 @@ namespace OpenTK.Platform.SDL2
         public const uint TouchMouseID = 0xffffffff;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct Rect
     {
         public int X;
@@ -1626,6 +1644,7 @@ namespace OpenTK.Platform.SDL2
         public int Height;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct SysWMInfo
     {
         public Version Version;
@@ -1685,6 +1704,7 @@ namespace OpenTK.Platform.SDL2
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct TextEditingEvent
     {
         public const int TextSize = 32;
@@ -1697,6 +1717,7 @@ namespace OpenTK.Platform.SDL2
         public Int32 Length;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct TextInputEvent
     {
         public const int TextSize = 32;
@@ -1707,6 +1728,7 @@ namespace OpenTK.Platform.SDL2
         public unsafe fixed byte Text[TextSize];
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct Version
     {
         public byte Major;
@@ -1719,6 +1741,7 @@ namespace OpenTK.Platform.SDL2
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     struct WindowEvent
     {
         public EventType Type;
