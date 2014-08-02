@@ -88,5 +88,12 @@ namespace OpenTK.Input
         //{
         //    return implementation.GetName(index);
         //}
+
+        internal static bool SetEffect(int index, HapticEffect effect)
+        {
+            return
+                (implementation is IHapticDriver) &&
+                (implementation as IHapticDriver).SetEffect(index, effect);
+        }
     }
 }

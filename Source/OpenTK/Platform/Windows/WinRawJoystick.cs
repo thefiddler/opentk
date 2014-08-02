@@ -37,7 +37,7 @@ using OpenTK.Platform.Common;
 
 namespace OpenTK.Platform.Windows
 {
-    class WinRawJoystick : IJoystickDriver2
+    class WinRawJoystick : IJoystickDriver2, IHapticDriver
     {
         class Device
         {
@@ -738,6 +738,23 @@ namespace OpenTK.Platform.Windows
                 }
                 return new Guid();
             }
+        }
+
+        #endregion
+
+        #region IHapticDriver
+
+        public bool SetEffect(int index, HapticEffect effect)
+        {
+            Device stick = Devices.FromIndex(index);
+            if (stick != null)
+            {
+                if (effect.Type == HapticEffectType.Vibration && stick.IsXInput)
+                {
+                    return XInput.SetVibration(index, effect.Vibration.LargeMotor, effect.Vibration.SmallMotor);
+                }
+            }
+            return false;
         }
 
         #endregion

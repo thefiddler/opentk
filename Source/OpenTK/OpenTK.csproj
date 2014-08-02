@@ -136,7 +136,9 @@
     <Compile Include="Input\GamePadThumbSticks.cs" />
     <Compile Include="Input\GamePadTriggers.cs" />
     <Compile Include="Input\GamePadType.cs" />
+    <Compile Include="Input\HapticEffect.cs" />
     <Compile Include="Input\IGamePadDriver.cs" />
+    <Compile Include="Input\IHapticDriver.cs" />
     <Compile Include="Input\IInputDriver2.cs" />
     <Compile Include="Input\IJoystickDriver2.cs" />
     <Compile Include="Input\IKeyboardDriver2.cs" />
@@ -854,8 +856,5 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup />
-  <ItemGroup>
-    <Folder Include="Platform\Linux\" />
-    <Folder Include="Platform\Linux\Bindings\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

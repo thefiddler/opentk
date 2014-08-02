@@ -217,7 +217,7 @@ namespace OpenTK.Platform
 
         public bool SetVibration(int index, float left, float right)
         {
-            return false;
+            return Joystick.SetEffect(index, new HapticEffect(new HapticEffectVibration(left, right)));
         }
 
         #region Private Members
