@@ -481,6 +481,15 @@ namespace Examples.Tests
             timestamp += e.Time;
             update_count++;
 
+            for (int i = 0; i < 16; i++)
+            {
+                var state = GamePad.GetState(i);
+                int pressed_count = 0;
+                GamePad.SetVibration(i,
+                    state.GetAxis(GamePadAxes.LeftTrigger),
+                    state.GetAxis(GamePadAxes.RightTrigger));
+    }
+
             using (Graphics gfx = Graphics.FromImage(TextBitmap))
             {
                 int line = 0;
@@ -537,7 +546,6 @@ namespace Examples.Tests
                     render_fps = render_count;
                     update_count = 0;
                     render_count = 0;
-
                 }
 
                 // Input information
