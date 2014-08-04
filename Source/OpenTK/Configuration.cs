@@ -221,7 +221,8 @@ namespace OpenTK
                         // Attempt to initialize SDL2.
                         var flags =
                             Platform.SDL2.SystemFlags.VIDEO |
-                            Platform.SDL2.SystemFlags.TIMER;
+                            Platform.SDL2.SystemFlags.TIMER |
+                            Platform.SDL2.SystemFlags.EVENTS;
 
                         if (Platform.SDL2.SDL.Init(flags) == 0)
                         {
