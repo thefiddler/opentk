@@ -37,6 +37,8 @@ namespace OpenTK.Platform.SDL2
 {
     using Surface = IntPtr;
     using Cursor = IntPtr;
+    using SDL_FingerID = Int64;
+    using SDL_TouchID = Int64;
 
     partial class SDL
     {
@@ -288,6 +290,29 @@ namespace OpenTK.Platform.SDL2
         public static string GetWindowTitle(IntPtr window)
         {
             return Marshal.PtrToStringAnsi(GetWindowTitlePrivate(window));
+        }
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetNumTouchDevices", ExactSpelling = true)]
+        public static extern int GetNumTouchDevices();
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetTouchDevice", ExactSpelling = true)]
+        public static extern SDL_TouchID GetTouchDevice(int index);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetNumTouchFingers", ExactSpelling = true)]
+        public static extern int GetNumTouchFingers(SDL_TouchID touchID);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_GetTouchFingerPrivate", ExactSpelling = true)]
+        static extern IntPtr GetTouchFingerPrivate(SDL_TouchID touchID, int index);
+        public static Finger GetTouchFinger(SDL_TouchID touchID, int indexer)
+        {
+            unsafe
+            {
+                return *(Finger*)GetTouchFingerPrivate(touchID, indexer);
+            }
         }
 
         [SuppressUnmanagedCodeSecurity]
@@ -1293,6 +1318,7 @@ namespace OpenTK.Platform.SDL2
         JOYSTICK = 0x00000200,
         HAPTIC = 0x00001000,
         GAMECONTROLLER = 0x00002000,
+        EVENTS = 0x00004000,
         NOPARACHUTE = 0x00100000,
         EVERYTHING = TIMER | AUDIO | VIDEO |
             JOYSTICK | HAPTIC | GAMECONTROLLER
@@ -1443,7 +1469,7 @@ namespace OpenTK.Platform.SDL2
         public SysWMEvent syswm;
 #endif
         [FieldOffset(0)]
-        public TouchFingerEvent tfinger;
+        public TouchFingerEvent TouchFinger;
 #if false
         [FieldOffset(0)]
         public MultiGestureEvent mgesture;
@@ -1459,6 +1485,15 @@ namespace OpenTK.Platform.SDL2
         // different sizeof(SDL_Event).
         [FieldOffset(0)]
         private unsafe fixed byte reserved[128];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct Finger
+    {
+        public SDL_FingerID Id;
+        public float X;
+        public float Y;
+        public float Pressure;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -1726,6 +1761,20 @@ namespace OpenTK.Platform.SDL2
         public UInt32 Timestamp;
         public UInt32 WindowID;
         public unsafe fixed byte Text[TextSize];
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct TouchFingerEvent
+    {
+        public EventType Type;
+        public UInt32 Timestamp;
+        public SDL_TouchID TouchId;
+        public SDL_FingerID FingerId;
+        public float X;
+        public float Y;
+        public float DX;
+        public float DY;
+        public float Pressure;
     }
 
     [StructLayout(LayoutKind.Sequential)]
