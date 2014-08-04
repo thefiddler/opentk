@@ -28,6 +28,8 @@ namespace Examples.Tests
         bool mouse_in_window = false;
         bool viewport_changed = true;
 
+        Dictionary<int, List<Vector3>> Fingers = new Dictionary<int, List<Vector3>>();
+
         MouseCursor Pencil;
 
         // legacy GameWindow.Mouse.* events
@@ -89,6 +91,39 @@ namespace Examples.Tests
             MouseWheel += MouseWheelHandler;
             MouseDown += MouseButtonHandler;
             MouseUp += MouseButtonHandler;
+
+            FingerDown += FingerHandler;
+            FingerUp += FingerHandler;
+            FingerMove += FingerHandler;
+        }
+
+        void FingerHandler(object sender, FingerEventArgs e)
+        {
+            int id = e.Finger.Id;
+            switch (e.Type)
+            {
+                case TouchType.FingerDown:
+                    if (!Fingers.ContainsKey(id))
+                    {
+                        Fingers.Add(id, new List<Vector3>());
+                    }
+                    break;
+
+                case TouchType.FingerUp:
+                case TouchType.FingerMove:
+                    if (!Fingers.ContainsKey(id))
+                    {
+                        throw new InvalidOperationException(id.ToString());
+                    }
+                    break;
+            }
+
+            var finger_history = Fingers[id];
+            finger_history.Add(new Vector3(e.Finger.X, e.Finger.Y, e.Finger.Pressure));
+            if (finger_history.Count > 64)
+            {
+                finger_history.RemoveAt(0);
+            }
         }
 
         #region Keyboard Events
@@ -634,9 +669,9 @@ namespace Examples.Tests
                 GL.Viewport(0, 0, Width, Height);
             }
 
-            DrawText();
-
+            DrawFingers();
             DrawMovingObjects();
+            DrawText();
 
             variable_refresh_timestep_pos += e.Time;
             if (variable_refresh_timestep_pos >= 1)
@@ -671,6 +706,53 @@ namespace Examples.Tests
             GL.TexCoord2(0, 1); GL.Vertex2(0, TextBitmap.Height);
             GL.End();
             GL.Disable(EnableCap.Texture2D);
+        }
+
+        void DrawFingers()
+        {
+            Matrix4 finger_projection = Matrix4.CreateOrthographicOffCenter(0, Width, Height, 0, -1, 1);
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.LoadMatrix(ref finger_projection);
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+
+            GL.Disable(EnableCap.Texture2D);
+
+            foreach (var finger in Fingers.Values)
+            {
+                GL.Begin(PrimitiveType.QuadStrip);
+                for (int i = finger.Count - 1; i >= 1; i--)
+                {
+                    var color = finger[i].Z;
+                    GL.Color4(new Color4(color, color, color, color));
+
+                    var orig = finger[i].Xy;
+                    var dest = finger[i - 1].Xy;
+                    var dir = dest - orig;
+
+                    var xy_left = orig + dir.PerpendicularLeft.Normalized() * 4;
+                    var xy_right = orig + dir.PerpendicularRight.Normalized() * 4;
+
+                    GL.Vertex2(xy_left);
+                    GL.Vertex2(xy_right);
+
+                    if (i == 0)
+                    {
+                        var xy_front = dir.Normalized() * 4;
+                        GL.Vertex2(xy_left + xy_front);
+                        GL.Vertex2(xy_right + xy_front);
+                    }
+
+                    // Fade-out the touches
+                    finger[i] = new Vector3(
+                        finger[i].X,
+                        finger[i].Y,
+                        MathHelper.Clamp(color - 1.0f / finger.Count, 0.0f, 1.0f));
+                }
+                GL.End();
+            }
+
+            GL.Enable(EnableCap.Texture2D);
         }
 
         // Draws three moving objects, using three different timing methods:
