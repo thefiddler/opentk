@@ -51,6 +51,10 @@ namespace OpenTK.Platform
         readonly KeyboardKeyEventArgs KeyUpArgs = new KeyboardKeyEventArgs();
         readonly KeyPressEventArgs KeyPressArgs = new KeyPressEventArgs((char)0);
 
+        readonly FingerEventArgs FingerDownArgs = new FingerEventArgs();
+        readonly FingerEventArgs FingerUpArgs = new FingerEventArgs();
+        readonly FingerEventArgs FingerMoveArgs = new FingerEventArgs();
+
         // In order to simplify mouse event implementation,
         // we can store the current mouse state here.
         protected MouseState MouseState = new MouseState();
@@ -69,6 +73,36 @@ namespace OpenTK.Platform
         }
 
         #region Protected Members
+
+        protected void OnFingerDown(int id,
+            float x, float y, float dx, float dy, float pressure)
+        {
+            FingerDownArgs.Finger = new TouchFinger(id,
+                new Vector2(x, y),
+                new Vector2(dx, dy),
+                pressure);
+            FingerDown(this, FingerDownArgs);
+        }
+
+        protected void OnFingerUp(int id,
+            float x, float y, float dx, float dy, float pressure)
+        {
+            FingerUpArgs.Finger = new TouchFinger(id,
+                new Vector2(x, y),
+                new Vector2(dx, dy),
+                pressure);
+            FingerUp(this, FingerUpArgs);
+        }
+
+        protected void OnFingerMove(int id,
+            float x, float y, float dx, float dy, float pressure)
+        {
+            FingerMoveArgs.Finger = new TouchFinger(id,
+                new Vector2(x, y),
+                new Vector2(dx, dy),
+                pressure);
+            FingerMove(this, FingerMoveArgs);
+        }
 
         protected void OnMove(EventArgs e)
         {
@@ -317,6 +351,9 @@ namespace OpenTK.Platform
         public event EventHandler<MouseButtonEventArgs> MouseUp = delegate { };
         public event EventHandler<MouseMoveEventArgs> MouseMove = delegate { };
         public event EventHandler<MouseWheelEventArgs> MouseWheel = delegate { };
+        public event EventHandler<FingerEventArgs> FingerDown = delegate { };
+        public event EventHandler<FingerEventArgs> FingerUp = delegate { };
+        public event EventHandler<FingerEventArgs> FingerMove = delegate { };
 
         public abstract void Close();
 

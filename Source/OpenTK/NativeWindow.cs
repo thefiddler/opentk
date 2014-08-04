@@ -703,6 +703,36 @@ namespace OpenTK
         /// </summary>
         public event EventHandler<MouseWheelEventArgs> MouseWheel = delegate { };
 
+        /// <summary>
+        /// Occurs whenever a <see cref="TouchFinger"/> is pressed
+        /// on a touch input device.
+        /// </summary>
+        public event EventHandler<FingerEventArgs> FingerDown
+        {
+            add { implementation.FingerDown += value; }
+            remove { implementation.FingerDown -= value; }
+        }
+
+        /// <summary>
+        /// Occurs whenever a <see cref="TouchFinger"/> is lifted
+        /// from a touch input device.
+        /// </summary>
+        public event EventHandler<FingerEventArgs> FingerUp
+        {
+            add { implementation.FingerUp += value; }
+            remove { implementation.FingerUp -= value; }
+        }
+
+        /// <summary>
+        /// Occurs whenever a <see cref="TouchFinger"/> is moved
+        /// across a touch input device.
+        /// </summary>
+        public event EventHandler<FingerEventArgs> FingerMove
+        {
+            add { implementation.FingerMove += value; }
+            remove { implementation.FingerMove -= value; }
+        }
+
         #endregion
 
         #endregion

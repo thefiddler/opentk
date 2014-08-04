@@ -280,6 +280,24 @@ namespace OpenTK
         /// </summary>
         event EventHandler<Input.MouseWheelEventArgs> MouseWheel;
 
+        /// <summary>
+        /// Occurs whenever a <see cref="TouchFinger"/> is pressed
+        /// on a touch input device.
+        /// </summary>
+        event EventHandler<FingerEventArgs> FingerDown;
+
+        /// <summary>
+        /// Occurs whenever a <see cref="TouchFinger"/> is lifted
+        /// from a touch input device.
+        /// </summary>
+        event EventHandler<FingerEventArgs> FingerUp;
+
+        /// <summary>
+        /// Occurs whenever a <see cref="TouchFinger"/> is moved
+        /// across a touch input device.
+        /// </summary>
+        event EventHandler<FingerEventArgs> FingerMove;
+
         //event EventHandler<MouseEventArgs> MouseClick;
         //event EventHandler<MouseEventArgs> MouseDoubleClick;
 

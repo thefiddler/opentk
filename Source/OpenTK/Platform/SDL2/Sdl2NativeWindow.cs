@@ -193,6 +193,31 @@ namespace OpenTK.Platform.SDL2
                         }
                         break;
 
+                    case EventType.FINGERDOWN:
+                        {
+                            OnFingerDown((int)ev.TouchFinger.FingerId,
+                                ev.TouchFinger.X * Width, ev.TouchFinger.Y * Height,
+                                ev.TouchFinger.DX * Width, ev.TouchFinger.DY * Height,
+                                ev.TouchFinger.Pressure);
+                        }
+                        break;
+
+                    case EventType.FINGERUP:
+                        {
+                            OnFingerUp((int)ev.TouchFinger.FingerId,
+                                ev.TouchFinger.X * Width, ev.TouchFinger.Y * Height,
+                                ev.TouchFinger.DX * Width, ev.TouchFinger.DY * Height,
+                                ev.TouchFinger.Pressure);
+                        }
+                        break;
+
+                    case EventType.FINGERMOTION:
+                        OnFingerMove((int)ev.TouchFinger.FingerId,
+                            ev.TouchFinger.X * Width, ev.TouchFinger.Y * Height,
+                            ev.TouchFinger.DX * Width, ev.TouchFinger.DY * Height,
+                            ev.TouchFinger.Pressure);
+                        break;
+
                     case EventType.QUIT:
                         Debug.WriteLine("Sdl2 application quit");
                         break;
