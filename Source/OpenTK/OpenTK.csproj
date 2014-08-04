@@ -824,6 +824,9 @@
     <Compile Include="Platform\Linux\Bindings\Evdev.cs" />
     <Compile Include="Platform\Linux\DefaultCursor.cs" />
     <Compile Include="Platform\Linux\Bindings\Kms.cs" />
+    <Compile Include="Input\TouchFinger.cs" />
+    <Compile Include="FingerEventArgs.cs" />
+    <Compile Include="Input\TouchType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
