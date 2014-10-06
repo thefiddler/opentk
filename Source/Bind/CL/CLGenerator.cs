@@ -37,6 +37,8 @@ namespace Bind.CL
             Settings.DefaultEnumsFile = "CL10.Enums.cs";
             Settings.DefaultClassesFile = "CL10.Extensions.cs";
 
+            Settings.OverridesFiles.Add("CL10/overrides.xml");
+
             Profile = "cl";
             Version = "1.0";
         }
