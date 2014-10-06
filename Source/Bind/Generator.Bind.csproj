@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
@@ -232,7 +232,6 @@
     </None>
     <None Include="Specifications\License.txt">
     </None>
-    <None Include="Specifications\GL2\overrides.xml" />
     <Compile Include="GL2\GL2Generator.cs" />
     <Compile Include="Structures\Documentation.cs" />
     <Compile Include="CL\CL20Generator.cs" />
@@ -247,6 +246,27 @@
     <Compile Include="ES\ES20Generator.cs" />
     <Compile Include="ES\ES11Generator.cs" />
     <Compile Include="ES\ES10Generator.cs" />
+    <None Include="Specifications\GL2\overrides.xml" />
+    <None Include="Specifications\GL2\GL\4.5\ARB_direct_state_access.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_compute_shader.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_separate_shader_objects.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_draw_indirect.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_explicit_uniform_location.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_framebuffer_no_attachments.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_program_interface_queries.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_shader_atomic_counters.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_shader_image_load_store.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_shader_storage_buffer_object.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_stencil_texturing.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_texture_gather.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_texture_storage_multisample.xml" />
+    <None Include="Specifications\GL2\ES\3.1\KHR_vertex_attrib_binding.xml" />
+    <Compile Include="ES\ES31Generator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <None Include="Specifications\GL2\GL\4.5\ARB_ES3_1_compatibility.xml" />
+    <None Include="Specifications\GL2\ES\1.1\obsolete.xml" />
+    <None Include="Specifications\GL2\GL\4.5\ARB_robustness.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Specifications\GL2\signatures.xml">
@@ -276,6 +296,8 @@
   </ProjectExtensions>
   <ItemGroup>
     <Folder Include="Specifications\Docs\" />
-    <Folder Include="ES\" />
+    <Folder Include="Specifications\GL2\ES\" />
+    <Folder Include="Specifications\GL2\ES\3.1\" />
+    <Folder Include="Specifications\GL2\ES\1.1\" />
   </ItemGroup>
 </Project>

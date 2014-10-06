@@ -21,6 +21,7 @@ namespace Bind.Structures
 
         public Enum()
         {
+            CLSCompliant = true;
         }
 
         public Enum(Type type, Enum e)
@@ -32,6 +33,8 @@ namespace Bind.Structures
             {
                 ConstantCollection.Add(c);
             }
+
+            CLSCompliant = e.CLSCompliant;
         }
 
         public override object Clone()
@@ -111,6 +114,10 @@ namespace Bind.Structures
         {
             ConstantCollection.Add(constant.Name, constant);
         }
+
+        public bool IsObsolete { get { return !String.IsNullOrEmpty(Obsolete); } }
+
+        public bool CLSCompliant { get; set; }
 
         #region IComparable<Enum> Members
 

@@ -58,7 +58,6 @@ namespace OpenTK.Platform.SDL2
         Icon icon;
         MouseCursor cursor = MouseCursor.Default;
         IntPtr sdl_cursor = IntPtr.Zero;
-        string window_title;
 
         // Used in KeyPress event to decode SDL UTF8 text strings
         // to .Net UTF16 strings 
@@ -109,7 +108,6 @@ namespace OpenTK.Platform.SDL2
                 window = new Sdl2WindowInfo(handle, null);
                 window_id = SDL.GetWindowID(handle);
                 windows.Add(window_id, this);
-                window_title = title;
             }
         }
 
@@ -678,7 +676,6 @@ namespace OpenTK.Platform.SDL2
                     if (Exists)
                     {
                         SDL.SetWindowTitle(window.Handle, value);
-                        window_title = value;
                     }
                 }
             }
@@ -952,7 +949,7 @@ namespace OpenTK.Platform.SDL2
                     if (manual)
                     {
                         Debug.Print("Disposing {0}", GetType());
-                        InputDriver.Dispose();
+
                         if (Exists)
                         {
                             DestroyWindow();

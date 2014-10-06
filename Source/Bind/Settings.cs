@@ -5,6 +5,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -14,9 +15,9 @@ namespace Bind
     [Serializable]
     class Settings
     {
-        // Disable BeforeFieldInit.
         public Settings()
         {
+            OverridesFiles = new List<string>();
         }
 
         public string DefaultInputPath = "../../../Source/Bind/Specifications";
@@ -25,8 +26,6 @@ namespace Bind
         public string DefaultDocPath = "../../../Source/Bind/Specifications/Docs";
         public string DefaultFallbackDocPath = "../../../Source/Bind/Specifications/Docs/GL";
         public string DefaultLicenseFile = "License.txt";
-        public string DefaultSignaturesFile = "signatures.xml";
-        public string DefaultOverridesFile = "overrides.xml";
         public string DefaultLanguageTypeMapFile = "csharp.tm";
         public string DefaultKeywordEscapeCharacter = "@";
         public string DefaultEnumsFile = "Enums.cs";
@@ -36,8 +35,7 @@ namespace Bind
         public Legacy DefaultCompatibility = Legacy.NoDropMultipleTokens;
 
         string inputPath, outputPath, outputNamespace, docPath, fallbackDocPath, licenseFile,
-            signaturesFile, overridesFile, typemap,
-            languageTypeMapFile, keywordEscapeCharacter, enumsFile,
+            languageTypeMapFile, keywordEscapeCharacter, importsFile, delegatesFile, enumsFile,
             wrappersFile, classesFile;
         Nullable<Legacy> compatibility;
         public string InputPath { get { return inputPath ?? DefaultInputPath; } set { inputPath = value; } }
@@ -46,14 +44,12 @@ namespace Bind
         public string DocPath { get { return docPath ?? DefaultDocPath; } set { docPath = value; } }
         public string FallbackDocPath { get { return fallbackDocPath ?? DefaultFallbackDocPath; } set { fallbackDocPath = value; } }
         public string LicenseFile { get { return licenseFile ?? DefaultLicenseFile; } set { licenseFile = value; } }
-        public string SignaturesFile { get { return signaturesFile ?? DefaultSignaturesFile; } set { signaturesFile = value; } }
-        public string OverridesFile { get { return overridesFile ?? DefaultOverridesFile; } set { overridesFile = value; } }
+        public List<string> OverridesFiles { get; private set; }
         public string LanguageTypeMapFile { get { return languageTypeMapFile ?? DefaultLanguageTypeMapFile; } set { languageTypeMapFile = value; } }
         public string KeywordEscapeCharacter { get { return keywordEscapeCharacter ?? DefaultKeywordEscapeCharacter; } set { keywordEscapeCharacter = value; } }
         public string EnumsFile { get { return enumsFile ?? DefaultEnumsFile; } set { enumsFile = value; } }
         public string WrappersFile { get { return wrappersFile ?? DefaultWrappersFile; } set { wrappersFile = value; } }
         public string ClassesFile { get { return classesFile ?? DefaultClassesFile; } set { classesFile = value; } }
-        public string TypeMapFile { get { return typemap ?? DefaultTypeMapFile; } set { typemap = value; } }
         public Legacy Compatibility { get { return compatibility ?? DefaultCompatibility; } set { compatibility = value; } }
 
         public string GLClass = "GL";        // Needed by Glu for the AuxEnumsClass. Can be set through -gl:"xxx".

@@ -32,7 +32,7 @@ using OpenTK.Input;
 
 namespace OpenTK.Platform.SDL2
 {
-    class Sdl2JoystickDriver : IJoystickDriver, IJoystickDriver2, IGamePadDriver, IDisposable
+    class Sdl2JoystickDriver : IJoystickDriver2, IGamePadDriver, IDisposable
     {
         const float RangeMultiplier =  1.0f / 32768.0f;
         readonly MappedGamePadDriver gamepad_driver = new MappedGamePadDriver();
@@ -55,9 +55,6 @@ namespace OpenTK.Platform.SDL2
         readonly List<JoystickDevice> joysticks = new List<JoystickDevice>(4);
         readonly Dictionary<int, int> sdl_instanceid_to_joysticks = new Dictionary<int, int>();
 
-        // For IJoystickDriver implementation
-        IList<JoystickDevice> joysticks_readonly;
-
 #if USE_SDL2_GAMECONTROLLER
         class Sdl2GamePad
         {
@@ -78,7 +75,6 @@ namespace OpenTK.Platform.SDL2
 
         public Sdl2JoystickDriver()
         {
-            joysticks_readonly = joysticks.AsReadOnly();
         }
 
         #region Private Members
@@ -131,28 +127,28 @@ namespace OpenTK.Platform.SDL2
 
         OpenTK.Input.HatPosition TranslateHat(HatPosition value)
         {
-            if ((value & HatPosition.LeftUp) == value)
+            if ((value & HatPosition.LeftUp) == HatPosition.LeftUp)
                 return OpenTK.Input.HatPosition.UpLeft;
 
-            if ((value & HatPosition.RightUp) == value)
+            if ((value & HatPosition.RightUp) == HatPosition.RightUp)
                 return OpenTK.Input.HatPosition.UpRight;
 
-            if ((value & HatPosition.LeftDown) == value)
+            if ((value & HatPosition.LeftDown) == HatPosition.LeftDown)
                 return OpenTK.Input.HatPosition.DownLeft;
 
-            if ((value & HatPosition.RightDown) == value)
+            if ((value & HatPosition.RightDown) == HatPosition.RightDown)
                 return OpenTK.Input.HatPosition.DownRight;
 
-            if ((value & HatPosition.Up) == value)
+            if ((value & HatPosition.Up) == HatPosition.Up)
                 return OpenTK.Input.HatPosition.Up;
 
-            if ((value & HatPosition.Right) == value)
+            if ((value & HatPosition.Right) == HatPosition.Right)
                 return OpenTK.Input.HatPosition.Right;
 
-            if ((value & HatPosition.Down) == value)
+            if ((value & HatPosition.Down) == HatPosition.Down)
                 return OpenTK.Input.HatPosition.Down;
 
-            if ((value & HatPosition.Left) == value)
+            if ((value & HatPosition.Left) == HatPosition.Left)
                 return OpenTK.Input.HatPosition.Left;
 
             return OpenTK.Input.HatPosition.Centered;
@@ -545,23 +541,6 @@ namespace OpenTK.Platform.SDL2
             }
         }
 #endif
-
-        #endregion
-
-        #region IJoystickDriver Members
-
-        public IList<JoystickDevice> Joysticks
-        {
-            get
-            {
-                return joysticks_readonly;
-            }
-        }
-
-        public void Poll()
-        {
-            // Do nothing
-        }
 
         #endregion
 

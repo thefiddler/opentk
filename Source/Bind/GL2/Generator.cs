@@ -22,6 +22,13 @@ namespace Bind.GL2
     {
         #region Fields
 
+        protected string glTypemap = "GL2/gl.tm";
+        protected string csTypemap = "csharp.tm";
+        protected string enumSpec = "GL2/enum.spec";
+        protected string enumSpecExt = "GL2/enumext.spec";
+        protected string glSpec = "GL2/gl.spec";
+        protected string glSpecExt = "";
+
         protected string path;
         protected string loadAllFuncName = "LoadAll";
 
@@ -66,6 +73,11 @@ namespace Bind.GL2
 
             path = Path.Combine(Settings.InputPath, dirName);
 
+            enumSpec = Path.Combine(dirName, "signatures.xml");
+            enumSpecExt = String.Empty;
+            glSpec = Path.Combine(dirName, "signatures.xml");
+            glSpecExt = String.Empty;
+
             Settings.OutputClass = "GL";
             Settings.DefaultClassesFile = "GL.Extensions.cs";
 
@@ -75,6 +87,27 @@ namespace Bind.GL2
             Classes = new ClassCollection();
 
             SpecReader = new XmlSpecReader(Settings);
+        }
+
+        #endregion
+
+        #region Private Members
+
+        IEnumerable<string> GetFiles(string path)
+        {
+            path = Path.Combine(Settings.InputPath, path);
+            if ((File.GetAttributes(path) & FileAttributes.Directory) != 0)
+            {
+                foreach (var file in Directory.GetFiles(
+                    path, "*.xml", SearchOption.AllDirectories))
+                {
+                    yield return file;
+                }
+            }
+            else
+            {
+                yield return path;
+            }
         }
 
         #endregion
@@ -90,17 +123,24 @@ namespace Bind.GL2
 
         public virtual void Process()
         {
-            string overrides = Path.Combine(path, Settings.OverridesFile);
-            string enums = Path.Combine(path, Settings.SignaturesFile);
-            string functions = Path.Combine(path, Settings.SignaturesFile);
+            var overrides = Settings.OverridesFiles.SelectMany(GetFiles);
 
-            GLTypes = SpecReader.ReadTypeMap(Path.Combine(Settings.InputPath, Settings.TypeMapFile));
-            CSTypes = SpecReader.ReadCSTypeMap(Path.Combine(Settings.InputPath, Settings.LanguageTypeMapFile));
+            GLTypes = SpecReader.ReadTypeMap(Path.Combine(Settings.InputPath, glTypemap));
+            CSTypes = SpecReader.ReadCSTypeMap(Path.Combine(Settings.InputPath, csTypemap));
 
-            SpecReader.ReadEnums(enums, Enums, Profile, Version);
-            SpecReader.ReadEnums(overrides, Enums, Profile, Version);
-            SpecReader.ReadDelegates(functions, Delegates, Profile, Version);
-            SpecReader.ReadDelegates(overrides, Delegates, Profile, Version);
+            // Read enum signatures
+            SpecReader.ReadEnums(Path.Combine(Settings.InputPath, enumSpec), Enums, Profile, Version);
+            foreach (var file in overrides)
+            {
+                SpecReader.ReadEnums(file, Enums, Profile, Version);
+            }
+
+            // Read delegate signatures
+            SpecReader.ReadDelegates(Path.Combine(Settings.InputPath, glSpec), Delegates, Profile, Version);
+            foreach (var file in overrides)
+            {
+                SpecReader.ReadDelegates(file, Delegates, Profile, Version);
+            }
 
             var enum_processor = new EnumProcessor(this, overrides);
             var func_processor = new FuncProcessor(this, overrides);

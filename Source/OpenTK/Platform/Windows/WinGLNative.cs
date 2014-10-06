@@ -83,7 +83,7 @@ namespace OpenTK.Platform.Windows
         const ClassStyle DefaultClassStyle = ClassStyle.OwnDC;
 
         const long ExtendedBit = 1 << 24;           // Used to distinguish left and right control, alt and enter keys.
-        
+
         public static readonly uint ShiftLeftScanCode = Functions.MapVirtualKey(VirtualKeys.LSHIFT, 0);
         public static readonly uint ShiftRightScanCode = Functions.MapVirtualKey(VirtualKeys.RSHIFT, 0);
         public static readonly uint ControlLeftScanCode = Functions.MapVirtualKey(VirtualKeys.LCONTROL, 0);
@@ -444,7 +444,7 @@ namespace OpenTK.Platform.Windows
                 else
                 {
                     // Exclude the current position. 
-                    Point currentScreenPosition = new Point(InputDriver.Mouse[0].X, InputDriver.Mouse[0].Y);
+                    Point currentScreenPosition = new Point(MouseState.X, MouseState.Y);
                     Functions.ClientToScreen(handle, ref currentScreenPosition);
 
                     // Find the first move point we've already seen.
@@ -867,7 +867,7 @@ namespace OpenTK.Platform.Windows
                 wc.WndProc = WindowProcedureDelegate;
                 wc.ClassName = ClassName;
                 wc.Icon = Icon != null ? Icon.Handle : IntPtr.Zero;
-#warning "This seems to resize one of the 'large' icons, rather than using a small icon directly (multi-icon files). Investigate!"
+                // Todo: the following line appears to resize one of the 'large' icons, rather than using a small icon directly (multi-icon files). Investigate!
                 wc.IconSm = Icon != null ? new Icon(Icon, 16, 16).Handle : IntPtr.Zero;
                 wc.Cursor = Functions.LoadCursor(CursorName.Arrow);
                 ushort atom = Functions.RegisterClassEx(ref wc);

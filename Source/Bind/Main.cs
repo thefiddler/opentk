@@ -293,6 +293,10 @@ namespace Bind
                     Generators.Add(new ES30Generator(Settings.Clone(), dirName));
                     break;
 
+                case "es31":
+                    Generators.Add(new ES31Generator(Settings.Clone(), dirName));
+                    break;
+
                 case "cl":
                     Generators.Add(new CLGenerator(Settings.Clone(), dirName));
                     Generators.Add(new CL11Generator(Settings.Clone(), dirName));

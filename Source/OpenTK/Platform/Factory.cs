@@ -48,31 +48,21 @@ namespace OpenTK.Platform
 
         static Factory()
         {
+            Toolkit.Init();
+        }
+
+        public Factory()
+        {
             // Ensure we are correctly initialized.
             Toolkit.Init();
 
             // Create regular platform backend
-            #if SDL2
-            Default = Configuration.RunningOnSdl2 ? new SDL2.Sdl2Factory() : null;
-            #endif
-            #if WIN32
-            Default = Default ?? (Configuration.RunningOnWindows ? new Windows.WinFactory() : null);
-            #endif
-            #if CARBON
-            Default = Default ?? (Configuration.RunningOnMacOS ? new MacOS.MacOSFactory() : null);
-            #endif
-            #if X11
-            Default = Default ?? (Configuration.RunningOnX11 ? new X11.X11Factory() : null);
-            #endif
-            #if ANDROID
-            Default = Default ?? (Configuration.RunningOnAndroid ? new Android.AndroidFactory() : null);
-            Embedded = Default;
-            #endif
-            #if IPHONE
-            Default = Default ?? (Configuration.RunningOniOS ? new iPhoneOS.iPhoneOSFactory() : null);
-            Embedded = Default;
-            #endif
-            Default = Default ?? new UnsupportedPlatform();
+            if (Configuration.RunningOnSdl2) Default = new SDL2.Sdl2Factory();
+            else if (Configuration.RunningOnX11) Default = new X11.X11Factory();
+            else if (Configuration.RunningOnLinux) Default = new Linux.LinuxFactory();
+            else if (Configuration.RunningOnWindows) Default = new Windows.WinFactory();
+            else if (Configuration.RunningOnMacOS) Default = new MacOS.MacOSFactory();
+            else Default = new UnsupportedPlatform();
 
             #if CARBON || COCOA || SDL2 || WIN32 || X11
             // Create embedded platform backend for EGL / OpenGL ES.
@@ -87,16 +77,11 @@ namespace OpenTK.Platform
             }
             else if (Egl.Egl.IsSupported)
             {
-                #if WIN32
-                Embedded = Configuration.RunningOnWindows ? new Egl.EglWinPlatformFactory() : null;
-                #endif
-                #if CARBON || COCOA
-                Embedded = Embedded ?? (Configuration.RunningOnMacOS ? new Egl.EglMacPlatformFactory() : null);
-                #endif
-                #if X11
-                Embedded = Embedded ?? (Configuration.RunningOnX11 ? new Egl.EglX11PlatformFactory() : null);
-                #endif
-                Embedded = Embedded ?? new UnsupportedPlatform();
+                if (Configuration.RunningOnLinux) Embedded = Default;
+                else if (Configuration.RunningOnX11) Embedded = new Egl.EglX11PlatformFactory();
+                else if (Configuration.RunningOnWindows) Embedded = new Egl.EglWinPlatformFactory();
+                else if (Configuration.RunningOnMacOS) Embedded = new Egl.EglMacPlatformFactory();
+                else Embedded = new UnsupportedPlatform();
             }
             else
             {
@@ -174,9 +159,17 @@ namespace OpenTK.Platform
             return default_implementation.CreateJoystickDriver();
         }
 
+        [Obsolete]
         public IJoystickDriver CreateLegacyJoystickDriver()
         {
+            #pragma warning disable 612,618
             return default_implementation.CreateLegacyJoystickDriver();
+            #pragma warning restore 612,618
+        }
+
+        public void RegisterResource(IDisposable resource)
+        {
+            default_implementation.RegisterResource(resource);
         }
 
         class UnsupportedPlatform : PlatformFactoryBase

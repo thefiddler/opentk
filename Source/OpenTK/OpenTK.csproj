@@ -162,11 +162,14 @@
     <Compile Include="Math\Matrix4x2d.cs" />
     <Compile Include="Math\Matrix4x3.cs" />
     <Compile Include="Math\Matrix4x3d.cs" />
+    <Compile Include="Platform\Common\Hid.cs" />
     <Compile Include="Platform\DisplayDeviceBase.cs" />
     <Compile Include="Platform\Egl\EglUnixContext.cs" />
     <Compile Include="Platform\Egl\EglWinContext.cs" />
     <Compile Include="Platform\MappedGamePadDriver.cs" />
+    <Compile Include="Platform\Windows\Bindings\HidProtocol.cs" />
     <Compile Include="Platform\Windows\WinInputBase.cs" />
+    <Compile Include="Platform\Windows\WinRawJoystick.cs" />
     <Compile Include="Platform\Windows\XInputJoystick.cs" />
     <Compile Include="Platform\X11\Bindings\DL.cs" />
     <Compile Include="Platform\X11\Bindings\INotify.cs" />
@@ -325,9 +328,6 @@
     <Compile Include="Platform\Windows\WinGLContext.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Platform\Windows\WinMMJoystick.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Platform\Windows\WglHelper.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -341,9 +341,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Platform\X11\X11WindowInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Platform\X11\X11Joystick.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Platform\X11\Functions.cs">
@@ -629,7 +626,7 @@
     <Compile Include="Platform\X11\X11Mouse.cs" />
     <Compile Include="Input\ButtonState.cs" />
     <EmbeddedResource Include="OpenTK.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <Compile Include="Platform\MacOS\HIDInput.cs" />
     <Compile Include="IntPtrEqualityComparer.cs" />
@@ -734,6 +731,27 @@
     <Compile Include="Platform\X11\XI2Input.cs" />
     <Compile Include="Platform\X11\XI2MouseKeyboard.cs" />
     <Compile Include="Platform\MacOS\Cocoa\NSFloat.cs" />
+    <Compile Include="Platform\Linux\Bindings\Drm.cs" />
+    <Compile Include="Platform\Linux\LinuxFactory.cs" />
+    <Compile Include="Platform\Linux\LinuxNativeWindow.cs" />
+    <Compile Include="Platform\Linux\Bindings\Gbm.cs" />
+    <Compile Include="Platform\Linux\LinuxDisplayDriver.cs" />
+    <Compile Include="Platform\Linux\LinuxJoystick.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Platform\Linux\Bindings\Libc.cs" />
+    <Compile Include="Platform\Linux\LinuxWindowInfo.cs" />
+    <Compile Include="Platform\Linux\LinuxGraphicsContext.cs" />
+    <Compile Include="Platform\Linux\Bindings\Poll.cs" />
+    <Compile Include="Platform\Linux\LinuxKeyboardTTY.cs" />
+    <Compile Include="Platform\Linux\Bindings\Udev.cs" />
+    <Compile Include="Platform\Linux\Bindings\LibInput.cs" />
+    <Compile Include="Platform\Linux\LinuxInput.cs" />
+    <Compile Include="Platform\Linux\Bindings\Terminal.cs" />
+    <Compile Include="Platform\DeviceCollection.cs" />
+    <Compile Include="Platform\Linux\Bindings\Evdev.cs" />
+    <Compile Include="Platform\Linux\DefaultCursor.cs" />
+    <Compile Include="Platform\Linux\Bindings\Kms.cs" />
     <Compile Include="Compute\CL20\CL20.Enums.cs" />
     <Compile Include="Compute\CL20\CL20.cs" />
     <Compile Include="Compute\CL20\CL20.Helper.cs" />
@@ -803,5 +821,10 @@
     <Folder Include="Extensions\" />
     <Folder Include="Compute\CL11\" />
     <Folder Include="Graphics\ES10\" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Platform\Linux\" />
+    <Folder Include="Platform\Linux\Bindings\" />
   </ItemGroup>
 </Project>

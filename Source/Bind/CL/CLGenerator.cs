@@ -21,7 +21,6 @@ namespace Bind.CL
 
             // Common settings for all OpenCL generators
             Settings.DefaultTypeMapFile = "CL10/cl.tm";
-            Settings.DefaultOverridesFile = "../CL10/overrides.xml";
 
             Settings.FunctionPrefix = "cl";
             Settings.ConstantPrefix = "CL_";
