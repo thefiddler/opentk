@@ -35,7 +35,7 @@ namespace Bind
         public Legacy DefaultCompatibility = Legacy.NoDropMultipleTokens;
 
         string inputPath, outputPath, outputNamespace, docPath, fallbackDocPath, licenseFile,
-            languageTypeMapFile, keywordEscapeCharacter, importsFile, delegatesFile, enumsFile,
+            languageTypeMapFile, keywordEscapeCharacter, typeMapFile, enumsFile,
             wrappersFile, classesFile;
         Nullable<Legacy> compatibility;
         public string InputPath { get { return inputPath ?? DefaultInputPath; } set { inputPath = value; } }
@@ -45,6 +45,7 @@ namespace Bind
         public string FallbackDocPath { get { return fallbackDocPath ?? DefaultFallbackDocPath; } set { fallbackDocPath = value; } }
         public string LicenseFile { get { return licenseFile ?? DefaultLicenseFile; } set { licenseFile = value; } }
         public List<string> OverridesFiles { get; private set; }
+        public string TypeMapFile { get { return typeMapFile ?? DefaultTypeMapFile; } set { typeMapFile = value; } }
         public string LanguageTypeMapFile { get { return languageTypeMapFile ?? DefaultLanguageTypeMapFile; } set { languageTypeMapFile = value; } }
         public string KeywordEscapeCharacter { get { return keywordEscapeCharacter ?? DefaultKeywordEscapeCharacter; } set { keywordEscapeCharacter = value; } }
         public string EnumsFile { get { return enumsFile ?? DefaultEnumsFile; } set { enumsFile = value; } }

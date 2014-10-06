@@ -22,8 +22,6 @@ namespace Bind.GL2
     {
         #region Fields
 
-        protected string glTypemap = "GL2/gl.tm";
-        protected string csTypemap = "csharp.tm";
         protected string enumSpec = "GL2/enum.spec";
         protected string enumSpecExt = "GL2/enumext.spec";
         protected string glSpec = "GL2/gl.spec";
@@ -125,8 +123,8 @@ namespace Bind.GL2
         {
             var overrides = Settings.OverridesFiles.SelectMany(GetFiles);
 
-            GLTypes = SpecReader.ReadTypeMap(Path.Combine(Settings.InputPath, glTypemap));
-            CSTypes = SpecReader.ReadCSTypeMap(Path.Combine(Settings.InputPath, csTypemap));
+            GLTypes = SpecReader.ReadTypeMap(Path.Combine(Settings.InputPath, Settings.TypeMapFile));
+            CSTypes = SpecReader.ReadCSTypeMap(Path.Combine(Settings.InputPath, Settings.LanguageTypeMapFile));
 
             // Read enum signatures
             SpecReader.ReadEnums(Path.Combine(Settings.InputPath, enumSpec), Enums, Profile, Version);
