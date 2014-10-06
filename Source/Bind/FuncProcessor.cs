@@ -139,8 +139,13 @@ namespace Bind
             Console.WriteLine("Generating documentation.");
             GenerateDocumentation(wrappers, enum_processor, doc_processor);
 
-            //Console.WriteLine("Generating extensions.");
-            //GenerateClasses(wrappers, classes, nav, apiname, apiversion);
+            Console.WriteLine("Generating classes.");
+            foreach (var file in Overrides)
+            {
+                var nav = new XPathDocument(file).CreateNavigator();
+                Console.WriteLine("Processing classes in {0}.", file);
+                GenerateClasses(wrappers, classes, nav, apiname, apiversion);
+            }
 
             return wrappers;
         }
