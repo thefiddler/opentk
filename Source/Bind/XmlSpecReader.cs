@@ -126,7 +126,7 @@ namespace Bind
         {
             using (var sr = new StreamReader(file))
             {
-                Console.WriteLine("Reading opengl types.");
+                Console.WriteLine("Reading spec types from '{0}'.", file);
                 Dictionary<string, string> GLTypes = new Dictionary<string, string>();
 
                 if (sr == null)
@@ -211,7 +211,7 @@ namespace Bind
             using (var sr = new StreamReader(file))
             {
                 Dictionary<string, string> CSTypes = new Dictionary<string, string>();
-                Console.WriteLine("Reading C# types.");
+                Console.WriteLine("Reading lang types from '{0}'.", file);
 
                 while (!sr.EndOfStream)
                 {
