@@ -37,10 +37,19 @@ namespace OpenTK.Platform.MacOS
 
     class MacOSFactory : PlatformFactoryBase
     {
+        // Todo: we can query the exact amount via
+        // CGEventSourceGetPixelsPerLine. This is
+        // approximately 0.1f
         internal const float ScrollFactor = 0.1f;
         internal static bool ExclusiveFullscreen = false;
 
-        readonly IInputDriver2 InputDriver = new HIDInput();
+        readonly IInputDriver2 InputDriver;
+
+        public MacOSFactory()
+        {
+            NSApplication.Initialize();
+            InputDriver = new HIDInput();
+        }
 
         #region IPlatformFactory Members
 

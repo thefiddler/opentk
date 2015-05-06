@@ -78,8 +78,12 @@ namespace OpenTK
         const double MaxFrequency = 500.0; // Frequency cap for Update/RenderFrame events
 
         readonly Stopwatch watch = new Stopwatch();
+
+        #pragma warning disable 612,618
         readonly IJoystickDriver LegacyJoystick =
             Factory.Default.CreateLegacyJoystickDriver();
+        #pragma warning restore 612,618
+
 
         IGraphicsContext glContext;
 
@@ -592,6 +596,8 @@ namespace OpenTK
 
         #region Keyboard
 
+        #pragma warning disable 0612
+
         /// <summary>
         /// Gets the primary Keyboard device, or null if no Keyboard exists.
         /// </summary>
@@ -600,9 +606,13 @@ namespace OpenTK
             get { return InputDriver.Keyboard.Count > 0 ? InputDriver.Keyboard[0] : null; }
         }
 
+        #pragma warning restore 0612
+
         #endregion
 
         #region Mouse
+
+        #pragma warning disable 0612
 
         /// <summary>
         /// Gets the primary Mouse device, or null if no Mouse exists.
@@ -611,6 +621,8 @@ namespace OpenTK
         {
             get { return InputDriver.Mouse.Count > 0 ? InputDriver.Mouse[0] : null; }
         }
+
+        #pragma warning restore 0612
 
         #endregion
 

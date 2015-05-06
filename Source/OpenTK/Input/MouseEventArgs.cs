@@ -231,7 +231,6 @@ namespace OpenTK.Input
         #region Fields
 
         MouseButton button;
-        bool pressed;
 
         #endregion
 
@@ -253,7 +252,7 @@ namespace OpenTK.Input
             : base(x, y)
         {
             this.button = button;
-            this.pressed = pressed;
+            this.IsPressed = pressed;
         }
 
         /// <summary>

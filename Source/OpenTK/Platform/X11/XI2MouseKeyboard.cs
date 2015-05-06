@@ -36,7 +36,7 @@ namespace OpenTK.Platform.X11
 {
     sealed class XI2MouseKeyboard : IKeyboardDriver2, IMouseDriver2, IDisposable
     {
-        const XEventName ExitEvent = XEventName.LASTEvent + 1;
+        static readonly IntPtr ExitAtom;
         readonly object Sync = new object();
         readonly Thread ProcessingThread;
         readonly X11KeyMap KeyMap;
@@ -60,21 +60,6 @@ namespace OpenTK.Platform.X11
             public string Name;
         }
 
-        // Atoms
-        //static readonly IntPtr ButtonLeft;
-        //static readonly IntPtr ButtonMiddle;
-        ////static readonly IntPtr ButtonRight;
-        //static readonly IntPtr ButtonWheelUp;
-        //static readonly IntPtr ButtonWheelDown;
-        //static readonly IntPtr ButtonWheelLeft;
-        //static readonly IntPtr ButtonWheelRight;
-        static readonly IntPtr RelX;
-        static readonly IntPtr RelY;
-        //static readonly IntPtr RelHorizScroll;
-        //static readonly IntPtr RelVertScroll;
-        //static readonly IntPtr RelHorizWheel;
-        //static readonly IntPtr RelVertWheel;
-
         long cursor_x, cursor_y; // For GetCursorState()
         List<XIMouse> devices = new List<XIMouse>(); // list of connected mice
         Dictionary<int, int> rawids = new Dictionary<int, int>(); // maps hardware device ids to XIMouse ids
@@ -93,29 +78,7 @@ namespace OpenTK.Platform.X11
         {
             using (new XLock(API.DefaultDisplay))
             {
-                // Mouse
-                //ButtonLeft = Functions.XInternAtom(API.DefaultDisplay, "Button Left", false);
-                //ButtonMiddle = Functions.XInternAtom(API.DefaultDisplay, "Button Middle", false);
-                //ButtonRight = Functions.XInternAtom(API.DefaultDisplay, "Button Right", false);
-                //ButtonWheelUp = Functions.XInternAtom(API.DefaultDisplay, "Button Wheel Up", false);
-                //ButtonWheelDown = Functions.XInternAtom(API.DefaultDisplay, "Button Wheel Down", false);
-                //ButtonWheelLeft = Functions.XInternAtom(API.DefaultDisplay, "Button Horiz Wheel Left", false);
-                //ButtonWheelRight = Functions.XInternAtom(API.DefaultDisplay, "Button Horiz Wheel Right", false);
-                RelX = Functions.XInternAtom(API.DefaultDisplay, "Rel X", false);
-                RelY = Functions.XInternAtom(API.DefaultDisplay, "Rel Y", false);
-                //RelHorizWheel = Functions.XInternAtom(API.DefaultDisplay, "Rel Horiz Wheel", false);
-                //RelVertWheel = Functions.XInternAtom(API.DefaultDisplay, "Rel Vert Wheel", false);
-                //RelHorizScroll = Functions.XInternAtom(API.DefaultDisplay, "Rel Horiz Scroll", false);
-                //RelVertScroll = Functions.XInternAtom(API.DefaultDisplay, "Rel Vert Scroll", false);
-
-                // Multitouch
-                //TouchX = Functions.XInternAtom(API.DefaultDisplay, "Abs MT Position X", false);
-                //TouchY = Functions.XInternAtom(API.DefaultDisplay, "Abs MT Position Y", false);
-                //TouchMajor = Functions.XInternAtom(API.DefaultDisplay, "Abs MT Touch Major", false);
-                //TouchMinor = Functions.XInternAtom(API.DefaultDisplay, "Abs MT Touch Minor", false);
-                //TouchPressure = Functions.XInternAtom(API.DefaultDisplay, "Abs MT Pressure", false);
-                //TouchId = Functions.XInternAtom(API.DefaultDisplay, "Abs MT Tracking ID", false);
-                //TouchMaxContacts = Functions.XInternAtom(API.DefaultDisplay, "Max Contacts", false);
+                ExitAtom = Functions.XInternAtom(API.DefaultDisplay, "Exit Input Thread Message", false);
             }
         }
 
@@ -126,9 +89,14 @@ namespace OpenTK.Platform.X11
             window.Display = Functions.XOpenDisplay(IntPtr.Zero);
             using (new XLock(window.Display))
             {
+                XSetWindowAttributes attr = new XSetWindowAttributes();
+
                 window.Screen = Functions.XDefaultScreen(window.Display);
                 window.RootWindow = Functions.XRootWindow(window.Display, window.Screen);
-                window.Handle = window.RootWindow;
+                window.Handle = Functions.XCreateWindow(window.Display, window.RootWindow,
+                    0, 0, 1, 1, 0, 0,
+                    CreateWindowArgs.InputOnly, IntPtr.Zero,
+                    SetWindowValuemask.Nothing, attr);
 
                 KeyMap = new X11KeyMap(window.Display);
             }
@@ -136,6 +104,10 @@ namespace OpenTK.Platform.X11
             if (!IsSupported(window.Display))
                 throw new NotSupportedException("XInput2 not supported.");
 
+            // Enable XI2 mouse/keyboard events
+            // Note: the input event loop blocks waiting for these events
+            // *or* a custom ClientMessage event that instructs us to exit.
+            // See SendExitEvent() below.
             using (new XLock(window.Display))
             using (XIEventMask mask = new XIEventMask(1,
                 XIEventMasks.RawKeyPressMask |
@@ -144,10 +116,9 @@ namespace OpenTK.Platform.X11
                 XIEventMasks.RawButtonReleaseMask |
                 XIEventMasks.RawMotionMask |
                 XIEventMasks.MotionMask |
-                XIEventMasks.DeviceChangedMask |
-                (XIEventMasks)(1 << (int)ExitEvent)))
+                XIEventMasks.DeviceChangedMask))
             {
-                XI.SelectEvents(window.Display, window.Handle, mask);
+                XI.SelectEvents(window.Display, window.RootWindow, mask);
                 UpdateDevices();
             }
 
@@ -380,16 +351,38 @@ namespace OpenTK.Platform.X11
 
                                             case XIClassType.Valuator:
                                                 {
+                                                    // We use relative x/y valuators for mouse movement.
+                                                    // Iff these are not available, we fall back to
+                                                    // absolute x/y valuators.
                                                     XIValuatorClassInfo* valuator = (XIValuatorClassInfo*)class_info;
-                                                    if (valuator->label == RelX)
+                                                    if (valuator->label == XI.RelativeX)
                                                     {
                                                         Debug.WriteLine("\tRelative X movement");
                                                         d.MotionX = *valuator;
                                                     }
-                                                    else if (valuator->label == RelY)
+                                                    else if (valuator->label == XI.RelativeY)
                                                     {
                                                         Debug.WriteLine("\tRelative Y movement");
                                                         d.MotionY = *valuator;
+                                                    }
+                                                    else if (valuator->label == XI.AbsoluteX)
+                                                    {
+                                                        Debug.WriteLine("\tAbsolute X movement");
+                                                        if (d.MotionX.number == -1)
+                                                            d.MotionX = *valuator;
+                                                    }
+                                                    else if (valuator->label == XI.AbsoluteY)
+                                                    {
+                                                        Debug.WriteLine("\tAbsolute X movement");
+                                                        if (d.MotionY.number == -1)
+                                                            d.MotionY = *valuator;
+                                                    }
+                                                    else
+                                                    {
+                                                        IntPtr label = Functions.XGetAtomName(window.Display, valuator->label);
+                                                        Debug.Print("\tUnknown valuator {0}",
+                                                            Marshal.PtrToStringAnsi(label));
+                                                        Functions.XFree(label);
                                                     }
                                                 }
                                                 break;
@@ -423,45 +416,52 @@ namespace OpenTK.Platform.X11
                 using (new XLock(window.Display))
                 {
                     Functions.XIfEvent(window.Display, ref e, Predicate, new IntPtr(XIOpCode));
-                    if (e.type == ExitEvent)
+
+                    if (e.type == XEventName.ClientMessage && e.ClientMessageEvent.ptr1 == ExitAtom)
                     {
-                        return;
+                        Functions.XDestroyWindow(window.Display, window.Handle);
+                        window.Handle = IntPtr.Zero;
+                        break;
                     }
 
-                    IntPtr dummy;
-                    int x, y, dummy2;
-                    Functions.XQueryPointer(window.Display, window.RootWindow,
-                        out dummy, out dummy, out x, out y,
-                        out dummy2, out dummy2, out dummy2);
-                    Interlocked.Exchange(ref cursor_x, (long)x);
-                    Interlocked.Exchange(ref cursor_y, (long)y);
-
-                    cookie = e.GenericEventCookie;
-                    if (Functions.XGetEventData(window.Display, ref cookie) != 0)
+                    if (e.type == XEventName.GenericEvent && e.GenericEvent.extension == XIOpCode)
                     {
-                        switch ((XIEventType)cookie.evtype)
+                        IntPtr dummy;
+                        int x, y, dummy2;
+                        Functions.XQueryPointer(window.Display, window.RootWindow,
+                            out dummy, out dummy, out x, out y,
+                            out dummy2, out dummy2, out dummy2);
+                        Interlocked.Exchange(ref cursor_x, (long)x);
+                        Interlocked.Exchange(ref cursor_y, (long)y);
+
+                        cookie = e.GenericEventCookie;
+                        if (Functions.XGetEventData(window.Display, ref cookie) != 0)
                         {
-                            case XIEventType.Motion:
+                            switch ((XIEventType)cookie.evtype)
+                            {
+                                case XIEventType.Motion:
                                 // Nothing to do
-                                break;
+                                    break;
 
-                            case XIEventType.RawKeyPress:
-                            case XIEventType.RawKeyRelease:
-                            case XIEventType.RawMotion:
-                            case XIEventType.RawButtonPress:
-                            case XIEventType.RawButtonRelease:
+                                case XIEventType.RawKeyPress:
+                                case XIEventType.RawKeyRelease:
+                                case XIEventType.RawMotion:
+                                case XIEventType.RawButtonPress:
+                                case XIEventType.RawButtonRelease:
                                 // Delivered to all XIMouse instances
-                                ProcessRawEvent(ref cookie);
-                                break;
+                                    ProcessRawEvent(ref cookie);
+                                    break;
 
-                            case XIEventType.DeviceChanged:
-                                UpdateDevices();
-                                break;
+                                case XIEventType.DeviceChanged:
+                                    UpdateDevices();
+                                    break;
+                            }
                         }
+                        Functions.XFreeEventData(window.Display, ref cookie);
                     }
-                    Functions.XFreeEventData(window.Display, ref cookie);
                 }
             }
+            Debug.WriteLine("[X11] Exiting input event loop.");
         }
 
         void ProcessRawEvent(ref XGenericEventCookie cookie)
@@ -490,6 +490,8 @@ namespace OpenTK.Platform.X11
                                 float dx, dy;
                                 MouseButton button = X11KeyMap.TranslateButton(raw.detail, out dx, out dy);
                                 mouse.State[button] = raw.evtype == XIEventType.RawButtonPress;
+                                if (mouse.ScrollX.number == -1 && mouse.ScrollY.number == -1)
+                                    mouse.State.SetScrollRelative(dx, dy);
                             }
                             break;
 
@@ -537,14 +539,32 @@ namespace OpenTK.Platform.X11
         {
             // Note: we use the raw values here, without pointer
             // ballistics and any other modification.
-            double x = ReadRawValue(ref raw, d.MotionX.number);
-            double y = ReadRawValue(ref raw, d.MotionY.number);
-            double h = ReadRawValue(ref raw, d.ScrollX.number) / d.ScrollX.increment;
-            double v = ReadRawValue(ref raw, d.ScrollY.number) / d.ScrollY.increment;
+            double x = 0;
+            double y = 0;
+            double h = 0;
+            double v = 0;
+            if (d.MotionX.number != -1)
+                x = ReadRawValue(ref raw, d.MotionX.number);
+            if (d.MotionY.number != -1)
+                y = ReadRawValue(ref raw, d.MotionY.number);
+            if (d.ScrollX.number != -1)
+                h = ReadRawValue(ref raw, d.ScrollX.number) / d.ScrollX.increment;
+            if (d.ScrollY.number != -1)
+                v = ReadRawValue(ref raw, d.ScrollY.number) / d.ScrollY.increment;
 
-            d.State.X += (int)Math.Round(x);
-            d.State.Y += (int)Math.Round(y);
-            d.State.SetScrollRelative((float)h, (float)v);
+            if (d.MotionX.mode == XIMode.Relative)
+                d.State.X += (int)Math.Round(x);
+            else
+                d.State.X = (int)Math.Round(x);
+            if (d.MotionY.mode == XIMode.Relative)
+                d.State.Y += (int)Math.Round(y);
+            else
+                d.State.Y = (int)Math.Round(y);
+
+            // Note: OpenTK follows the windows scrolling convention where
+            // (+h, +v) = (right, up). XI2 uses (+h, +v) = (right, down)
+            // instead, so we need to flip the vertical offset.
+            d.State.SetScrollRelative((float)h, (float)(-v));
         }
 
         unsafe static double ReadRawValue(ref XIRawEvent raw, int bit)
@@ -571,16 +591,29 @@ namespace OpenTK.Platform.X11
         static bool IsEventValid(IntPtr display, ref XEvent e, IntPtr arg)
         {
             bool valid = false;
-            if ((long)e.GenericEventCookie.extension == arg.ToInt64())
+            switch (e.type)
             {
-                valid |= e.GenericEventCookie.evtype == (int)XIEventType.RawKeyPress;
-                valid |= e.GenericEventCookie.evtype == (int)XIEventType.RawKeyRelease;
-                valid |= e.GenericEventCookie.evtype == (int)XIEventType.RawMotion;
-                valid |= e.GenericEventCookie.evtype == (int)XIEventType.RawButtonPress;
-                valid |= e.GenericEventCookie.evtype == (int)XIEventType.RawButtonRelease;
-                valid |= e.GenericEventCookie.evtype == (int)XIEventType.DeviceChanged;
+                case XEventName.GenericEvent:
+                {
+                    long extension = (long)e.GenericEventCookie.extension;
+                    valid =
+                        extension == arg.ToInt64() &&
+                        (e.GenericEventCookie.evtype == (int)XIEventType.RawKeyPress ||
+                        e.GenericEventCookie.evtype == (int)XIEventType.RawKeyRelease ||
+                        e.GenericEventCookie.evtype == (int)XIEventType.RawMotion ||
+                        e.GenericEventCookie.evtype == (int)XIEventType.RawButtonPress ||
+                        e.GenericEventCookie.evtype == (int)XIEventType.RawButtonRelease ||
+                        e.GenericEventCookie.evtype == (int)XIEventType.DeviceChanged);
+                    valid |= extension == 0;
+                    break;
+                }
+
+                case XEventName.ClientMessage:
+                    valid =
+                        e.ClientMessageEvent.ptr1 == ExitAtom;
+                    break;
             }
-            valid |= e.AnyEvent.type == ExitEvent;
+
             return valid;
         }
 
@@ -589,6 +622,23 @@ namespace OpenTK.Platform.X11
             unsafe
             {
                 return bit >= 0 && (*((byte*)mask + (bit >> 3)) & (1 << (bit & 7))) != 0;
+            }
+        }
+
+        void SendExitEvent()
+        {
+            // Send a ClientMessage event to unblock XIfEvent
+            // and exit the input event loop.
+            using (new XLock(API.DefaultDisplay))
+            {
+                XEvent ev = new XEvent();
+                ev.type = XEventName.ClientMessage;
+                ev.ClientMessageEvent.display = window.Display;
+                ev.ClientMessageEvent.window = window.Handle;
+                ev.ClientMessageEvent.format = 32;
+                ev.ClientMessageEvent.ptr1 = ExitAtom;
+                Functions.XSendEvent(API.DefaultDisplay, window.Handle, false, 0, ref ev);
+                Functions.XFlush(API.DefaultDisplay);
             }
         }
 
@@ -606,17 +656,8 @@ namespace OpenTK.Platform.X11
         {
             if (!disposed)
             {
-                if (disposing)
-                {
-                    using (new XLock(API.DefaultDisplay))
-                    {
-                        XEvent e = new XEvent();
-                        e.type = ExitEvent;
-                        Functions.XSendEvent(API.DefaultDisplay, window.Handle, false, IntPtr.Zero, ref e);
-                        Functions.XFlush(API.DefaultDisplay);
-                    }
-                }
                 disposed = true;
+                SendExitEvent();
             }
         }
 

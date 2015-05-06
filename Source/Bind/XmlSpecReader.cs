@@ -331,7 +331,7 @@ namespace Bind
                 delegates.Add(d);
             }
 
-            Utilities.InitExtensions(extensions);
+            Utilities.AddExtensions(extensions);
             return delegates;
         }
 
@@ -352,6 +352,8 @@ namespace Bind
                         Name = node.GetAttribute("name", String.Empty).Trim(),
                         Type = node.GetAttribute("type", String.Empty).Trim()
                     };
+
+                    e.Obsolete = node.GetAttribute("obsolete", String.Empty).Trim();
 
                     if (String.IsNullOrEmpty(e.Name))
                         throw new InvalidOperationException(String.Format("Empty name for enum element {0}", node.ToString()));
