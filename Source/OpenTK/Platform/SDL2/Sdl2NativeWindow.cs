@@ -28,7 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+#if !MINIMAL
 using System.Drawing;
+#endif
 #if ANDROID || IPHONE || MINIMAL
 using OpenTK.Minimal;
 #else
@@ -73,6 +75,8 @@ namespace OpenTK.Platform.SDL2
         {
             lock (sync)
             {
+                SDL.DisableScreenSaver();
+
                 var bounds = device.Bounds;
                 var flags = TranslateFlags(options);
                 flags |= WindowFlags.OPENGL;
@@ -281,6 +285,7 @@ namespace OpenTK.Platform.SDL2
             window.OnMouseMove(
                 (int)Math.Round(ev.X * scale),
                 (int)Math.Round(ev.Y * scale));
+            Sdl2Mouse.Scale = scale;
         }
 
         static void ProcessMouseWheelEvent(Sdl2NativeWindow window, MouseWheelEvent ev)
@@ -575,26 +580,14 @@ namespace OpenTK.Platform.SDL2
 
         public override Point PointToClient(Point point)
         {
-            var origin = Point.Empty;
-            var display = DisplayDevice.Default;
-            if (display != null)
-            {
-                origin = display.Bounds.Location;
-            }
             var client = Location;
-            return new Point(point.X + client.X - origin.X, point.Y + client.Y - origin.Y);
+            return new Point(point.X - client.X, point.Y - client.Y);
         }
 
         public override Point PointToScreen(Point point)
         {
-            var origin = Point.Empty;
-            var display = DisplayDevice.Default;
-            if (display != null)
-            {
-                origin = display.Bounds.Location;
-            }
             var client = Location;
-            return new Point(point.X + origin.X - client.X, point.Y + origin.Y - client.Y);
+            return new Point(point.X + client.X, point.Y + client.Y);
         }
 
         public override Icon Icon

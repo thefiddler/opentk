@@ -29,7 +29,9 @@
 
 using System;
 using System.Diagnostics;
+#if !MINIMAL
 using System.Drawing;
+#endif
 using System.Runtime.InteropServices;
 using OpenTK.Graphics;
 using OpenTK.Input;
@@ -349,27 +351,14 @@ namespace OpenTK.Platform.Linux
 
         public override Point PointToClient(Point point)
         {
-            var origin = Point.Empty;
-            var display = DisplayDevice.Default;
-            if (display != null)
-            {
-                origin = display.Bounds.Location;
-            }
             var client = Location;
-            return new Point(point.X + client.X - origin.X, point.Y + client.Y - origin.Y);
+            return new Point(point.X - client.X, point.Y - client.Y);
         }
 
         public override Point PointToScreen(Point point)
         {
-            var origin = Point.Empty;
-            var display = DisplayDevice.Default;
-            if (display != null)
-            {
-                origin = display.Bounds.Location;
-            }
             var client = Location;
-            return new Point(point.X + origin.X - client.X, point.Y + origin.Y - client.Y);
-
+            return new Point(point.X + client.X, point.Y + client.Y);
         }
 
         protected override void Dispose(bool disposing)

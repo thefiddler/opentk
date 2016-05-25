@@ -54,6 +54,10 @@ namespace OpenTK
         private bool cursor_visible = true;
         private bool previous_cursor_visible = true;
 
+        /// <summary>
+        /// System.Threading.Thread.CurrentThread.ManagedThreadId of the thread that created this <see cref="OpenTK.NativeWindow"/>.
+        /// </summary>
+        private int thread_id;
         #endregion
 
         #region --- Contructors ---
@@ -101,6 +105,8 @@ namespace OpenTK
 
             this.options = options;
             this.device = device;
+
+            this.thread_id = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
             IPlatformFactory factory = Factory.Default;
             implementation = factory.CreateNativeWindow(x, y, width, height, title, mode, options, this.device);
@@ -465,7 +471,7 @@ namespace OpenTK
         #region Width
 
         /// <summary>
-        /// Gets or sets the height of the OpenGL surface in window coordinates.
+        /// Gets or sets the width of the OpenGL surface in window coordinates.
         /// The coordinates are specified in device-dependent pixels.
         /// </summary>
         public int Width
@@ -487,7 +493,7 @@ namespace OpenTK
         #region WindowBorder
 
         /// <summary>
-        /// Gets or states the border of the NativeWindow.
+        /// Gets or sets the border of the NativeWindow.
         /// </summary>
         public WindowBorder WindowBorder
         {
@@ -522,7 +528,7 @@ namespace OpenTK
         #region WindowState
 
         /// <summary>
-        /// Gets or states the state of the NativeWindow.
+        /// Gets or sets the state of the NativeWindow.
         /// </summary>
         public virtual WindowState WindowState
         {
@@ -1049,6 +1055,10 @@ namespace OpenTK
         protected void ProcessEvents(bool retainEvents)
         {
             EnsureUndisposed();
+            if (this.thread_id != System.Threading.Thread.CurrentThread.ManagedThreadId)
+            {
+                throw new InvalidOperationException("ProcessEvents must be called on the same thread that created the window.");
+            }
             if (!retainEvents && !events) Events = true;
             implementation.ProcessEvents();
         }

@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+
 namespace OpenTK
 {
     /// <summary>Represents a 4D vector using four single-precision floating-point numbers.</summary>
@@ -1017,6 +1018,29 @@ namespace OpenTK
             result = new Vector4(v.X, v.Y, v.Z, v.W);
         }
 
+        /// <summary>Transform a Vector by the given Matrix using right-handed notation</summary>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="vec">The vector to transform</param>
+        public static Vector4 Transform(Matrix4 mat, Vector4 vec)
+        {
+            Vector4 result;
+            Transform(ref mat, ref vec, out result);
+            return result;
+        }
+
+        /// <summary>Transform a Vector by the given Matrix using right-handed notation</summary>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="vec">The vector to transform</param>
+        /// <param name="result">The transformed vector</param>
+        public static void Transform(ref Matrix4 mat, ref Vector4 vec, out Vector4 result)
+        {
+            result = new Vector4(
+                mat.Row0.X * vec.X + mat.Row0.Y * vec.Y + mat.Row0.Z * vec.Z + mat.Row0.W * vec.W,
+                mat.Row1.X * vec.X + mat.Row1.Y * vec.Y + mat.Row1.Z * vec.Z + mat.Row1.W * vec.W,
+                mat.Row2.X * vec.X + mat.Row2.Y * vec.Y + mat.Row2.Z * vec.Z + mat.Row2.W * vec.W,
+                mat.Row3.X * vec.X + mat.Row3.Y * vec.Y + mat.Row3.Z * vec.Z + mat.Row3.W * vec.W);
+        }
+
         #endregion
 
         #endregion
@@ -1490,7 +1514,7 @@ namespace OpenTK
             vec.W *= scale;
             return vec;
         }
-		
+        
         /// <summary>
         /// Component-wise multiplication between the specified instance by a scale vector.
         /// </summary>
@@ -1505,7 +1529,46 @@ namespace OpenTK
             vec.W *= scale.W;
             return vec;
         }
-		
+
+        /// <summary>
+        /// Transform a Vector by the given Matrix.
+        /// </summary>
+        /// <param name="vec">The vector to transform</param>
+        /// <param name="mat">The desired transformation</param>
+        /// <returns>The transformed vector</returns>
+        public static Vector4 operator *(Vector4 vec, Matrix4 mat)
+        {
+            Vector4 result;
+            Vector4.Transform(ref vec, ref mat, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Transform a Vector by the given Matrix using right-handed notation
+        /// </summary>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="vec">The vector to transform</param>
+        /// <returns>The transformed vector</returns>
+        public static Vector4 operator *(Matrix4 mat, Vector4 vec)
+        {
+            Vector4 result;
+            Vector4.Transform(ref mat, ref vec, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Transforms a vector by a quaternion rotation.
+        /// </summary>
+        /// <param name="quat">The quaternion to rotate the vector by.</param>
+        /// <param name="vec">The vector to transform.</param>
+        /// <returns>The transformed vector</returns>
+        public static Vector4 operator *(Quaternion quat, Vector4 vec)
+        {
+            Vector4 result;
+            Vector4.Transform(ref vec, ref quat, out result);
+            return result;
+        }
+
         /// <summary>
         /// Divides an instance by a scalar.
         /// </summary>
@@ -1594,7 +1657,14 @@ namespace OpenTK
         /// <returns>A System.Int32 containing the unique hashcode for this instance.</returns>
         public override int GetHashCode()
         {
-            return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
+            unchecked
+            {
+                var hashCode = this.X.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Y.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Z.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.W.GetHashCode();
+                return hashCode;
+            }
         }
 
         #endregion

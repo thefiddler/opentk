@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.IO;
 #if !MINIMAL
 using System.Drawing;
+using System.Drawing.Imaging;
 #endif
 
 namespace OpenTK.Platform.Windows
@@ -69,6 +70,7 @@ namespace OpenTK.Platform.Windows
         bool borderless_maximized_window_state = false; // Hack to get maximized mode with hidden border (not normally possible).
         bool focused;
         bool mouse_outside_window = true;
+        int mouse_capture_count = 0;
         int mouse_last_timestamp = 0;
         bool invisible_since_creation; // Set by WindowsMessage.CREATE and consumed by Visible = true (calls BringWindowToFront).
         int suppress_resize; // Used in WindowBorder and WindowState in order to avoid rapid, consecutive resize events.
@@ -383,6 +385,14 @@ namespace OpenTK.Platform.Windows
             return null;
         }
 
+        private void HandleCaptureChanged(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
+        {
+            if (lParam != window.Handle)
+            {
+                mouse_capture_count = 0;
+            }
+        }
+
         void HandleChar(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
             char c;
@@ -399,12 +409,40 @@ namespace OpenTK.Platform.Windows
 
         void HandleMouseMove(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
+            Point point = new Point(
+                (short)((uint)lParam.ToInt32() & 0x0000FFFF),
+                (short)(((uint)lParam.ToInt32() & 0xFFFF0000) >> 16));
+
+            if (mouse_capture_count > 0)
+            {
+                bool mouse_was_outside_window = mouse_outside_window;
+                mouse_outside_window = !ClientRectangle.Contains(point);
+
+                if (mouse_outside_window && !mouse_was_outside_window)
+                {
+                    // Mouse leaving
+                    // If we have mouse capture we ignore WM_MOUSELEAVE events, so 
+                    // have to manually call OnMouseLeave here.
+                    // Mouse tracking is disabled automatically by the OS
+                    OnMouseLeave(EventArgs.Empty);
+                } 
+                else if (!mouse_outside_window && mouse_was_outside_window)
+                {
+                    // Mouse entring
+                    OnMouseEnter(EventArgs.Empty);
+                }
+            }
+            else if (/* !mouse_is_captured && */ mouse_outside_window)
+            {
+                // Once we receive a mouse move event, it means that the mouse has
+                // re-entered the window.
+                mouse_outside_window = false;
+                EnableMouseTracking();
+                OnMouseEnter(EventArgs.Empty);
+            }
+
             unsafe
             {
-                Point point = new Point(
-                    (short)((uint)lParam.ToInt32() & 0x0000FFFF),
-                    (short)(((uint)lParam.ToInt32() & 0xFFFF0000) >> 16));
-
                 // GetMouseMovePointsEx works with screen coordinates
                 Point screenPoint = point;
                 Functions.ClientToScreen(handle, ref screenPoint);
@@ -478,24 +516,18 @@ namespace OpenTK.Platform.Windows
                 }
                 mouse_last_timestamp = timestamp;
             }
-
-            if (mouse_outside_window)
-            {
-                // Once we receive a mouse move event, it means that the mouse has
-                // re-entered the window.
-                mouse_outside_window = false;
-                EnableMouseTracking();
-
-                OnMouseEnter(EventArgs.Empty);
-            }
         }
 
         void HandleMouseLeave(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            mouse_outside_window = true;
-            // Mouse tracking is disabled automatically by the OS
-
-            OnMouseLeave(EventArgs.Empty);
+            // If the mouse is captured we get spurious MOUSELEAVE events.
+            // So ignore WM_MOUSELEAVE if capture count != 0.
+            if (mouse_capture_count == 0 )
+            {
+                mouse_outside_window = true;
+                // Mouse tracking is disabled automatically by the OS
+                OnMouseLeave(EventArgs.Empty);
+            }
         }
 
         void HandleMouseWheel(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
@@ -514,25 +546,25 @@ namespace OpenTK.Platform.Windows
 
         void HandleLButtonDown(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.SetCapture(window.Handle);
+            SetCapture();
             OnMouseDown(MouseButton.Left);
         }
 
         void HandleMButtonDown(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.SetCapture(window.Handle);
+            SetCapture();
             OnMouseDown(MouseButton.Middle);
         }
 
         void HandleRButtonDown(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.SetCapture(window.Handle);
+            SetCapture();
             OnMouseDown(MouseButton.Right);
         }
 
         void HandleXButtonDown(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.SetCapture(window.Handle);
+            SetCapture();
             MouseButton button =
                 ((wParam.ToInt32() & 0xFFFF0000) >> 16) == 1 ?
                 MouseButton.Button1 : MouseButton.Button2;
@@ -541,25 +573,25 @@ namespace OpenTK.Platform.Windows
 
         void HandleLButtonUp(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.ReleaseCapture();
+            ReleaseCapture();
             OnMouseUp(MouseButton.Left);
         }
 
         void HandleMButtonUp(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.ReleaseCapture();
+            ReleaseCapture();
             OnMouseUp(MouseButton.Middle);
         }
 
         void HandleRButtonUp(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.ReleaseCapture();
+            ReleaseCapture();
             OnMouseUp(MouseButton.Right);
         }
 
         void HandleXButtonUp(IntPtr handle, WindowMessage message, IntPtr wParam, IntPtr lParam)
         {
-            Functions.ReleaseCapture();
+            ReleaseCapture();
             MouseButton button =
                 ((wParam.ToInt32() & 0xFFFF0000) >> 16) == 1 ?
                 MouseButton.Button1 : MouseButton.Button2;
@@ -693,6 +725,10 @@ namespace OpenTK.Platform.Windows
                     result = HandleSetCursor(handle, message, wParam, lParam);
                     break;
 
+                case WindowMessage.CAPTURECHANGED:
+                    HandleCaptureChanged(handle, message, wParam, lParam);
+                    break;
+
                 #endregion
 
                 #region Input events
@@ -790,6 +826,26 @@ namespace OpenTK.Platform.Windows
             else
             {
                 return Functions.DefWindowProc(handle, message, wParam, lParam);
+            }
+        }
+
+        private void SetCapture()
+        {
+            if (mouse_capture_count == 0)
+            {
+                Functions.SetCapture(window.Handle);
+            }
+            mouse_capture_count++;
+        }
+
+        private void ReleaseCapture()
+        {
+            mouse_capture_count--;
+            if (mouse_capture_count == 0)
+            {
+                Functions.ReleaseCapture();
+                // Renable mouse tracking
+                EnableMouseTracking();
             }
         }
 
@@ -1127,21 +1183,26 @@ namespace OpenTK.Platform.Windows
             }
             set
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
                 if (value != cursor)
                 {
-                    bool destoryOld = cursor != MouseCursor.Default;
-                    IntPtr oldCursor = IntPtr.Zero;
+                    MouseCursor oldCursor = cursor;
+                    IntPtr oldCursorHandle = cursor_handle;
 
                     if (value == MouseCursor.Default)
                     {
-                        cursor_handle = Functions.LoadCursor(CursorName.Arrow);
-                        oldCursor = Functions.SetCursor(cursor_handle);
                         cursor = value;
+                        cursor_handle = Functions.LoadCursor(CursorName.Arrow);
+                        Functions.SetCursor(cursor_handle);
                     }
                     else
                     {
                         var stride = value.Width *
-                            (Bitmap.GetPixelFormatSize(System.Drawing.Imaging.PixelFormat.Format32bppArgb) / 8);
+                            (Bitmap.GetPixelFormatSize(PixelFormat.Format32bppArgb) / 8);
 
                         Bitmap bmp;
                         unsafe
@@ -1149,7 +1210,7 @@ namespace OpenTK.Platform.Windows
                             fixed (byte* pixels = value.Data)
                             {
                                 bmp = new Bitmap(value.Width, value.Height, stride,
-                                    System.Drawing.Imaging.PixelFormat.Format32bppArgb,
+                                    PixelFormat.Format32bppArgb,
                                     new IntPtr(pixels));
                             }
                         }
@@ -1159,29 +1220,51 @@ namespace OpenTK.Platform.Windows
                             var bmpIcon = bmp.GetHicon();
                             var success = Functions.GetIconInfo(bmpIcon, out iconInfo);
 
-                            if (success)
+                            try
                             {
+                                if (!success)
+                                {
+                                    throw new System.ComponentModel.Win32Exception();
+                                }
+
                                 iconInfo.xHotspot = value.X;
                                 iconInfo.yHotspot = value.Y;
                                 iconInfo.fIcon = false;
 
                                 var icon = Functions.CreateIconIndirect(ref iconInfo);
-
-                                if (icon != IntPtr.Zero)
+                                if (icon == IntPtr.Zero)
                                 {
-                                    // Currently using a custom cursor so destroy it 
-                                    // once replaced
-                                    cursor = value;
-                                    cursor_handle = icon;
-                                    oldCursor = Functions.SetCursor(icon);
+                                    throw new System.ComponentModel.Win32Exception();
                                 }
+
+                                // Need to destroy this icon when/if it's replaced by another cursor.
+                                cursor = value;
+                                cursor_handle = icon;
+                                Functions.SetCursor(icon);
+                            }
+                            finally
+                            {
+                                if (success)
+                                {
+                                    // GetIconInfo creates bitmaps for the hbmMask and hbmColor members of ICONINFO. 
+                                    // The calling application must manage these bitmaps and delete them when they are no longer necessary.
+                                    Functions.DeleteObject(iconInfo.hbmColor);
+                                    Functions.DeleteObject(iconInfo.hbmMask);
+                                }
+
+                                Functions.DestroyIcon(bmpIcon);
                             }
                         }
                     }
+                    
+                    Debug.Assert(oldCursorHandle != IntPtr.Zero);
+                    Debug.Assert(oldCursorHandle != cursor_handle);
+                    Debug.Assert(oldCursor != cursor);
 
-                    if (destoryOld && oldCursor != IntPtr.Zero)
+                    // If we've replaced a custom (non-default) cursor we need to free the handle.
+                    if (oldCursor != MouseCursor.Default)
                     {
-                        Functions.DestroyIcon(oldCursor);
+                        Functions.DestroyIcon(oldCursorHandle);
                     }
                 }
             }

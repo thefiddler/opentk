@@ -53,8 +53,6 @@ namespace OpenTK.Platform.Egl
             if (window == null)
                 throw new ArgumentNullException("window");
 
-            EglContext shared = (EglContext)sharedContext;
-
             WindowInfo = window;
 
             // Select an EGLConfig that matches the desired mode. We cannot use the 'mode'
@@ -64,7 +62,18 @@ namespace OpenTK.Platform.Egl
             Renderable = RenderableFlags.GL;
             if ((flags & GraphicsContextFlags.Embedded) != 0)
             {
-                Renderable = major > 1 ? RenderableFlags.ES2 : RenderableFlags.ES;
+                switch (major)
+                {
+                    case 3:
+                        Renderable = RenderableFlags.ES3;
+                        break;
+                    case 2:
+                        Renderable = RenderableFlags.ES2;
+                        break;
+                    default:
+                        Renderable = RenderableFlags.ES;
+                        break;
+                }
             }
 
             RenderApi api = (Renderable & RenderableFlags.GL) != 0 ? RenderApi.GL : RenderApi.ES;
@@ -86,9 +95,7 @@ namespace OpenTK.Platform.Egl
                 window.CreateWindowSurface(config);
 
             int[] attrib_list = new int[] { Egl.CONTEXT_CLIENT_VERSION, major, Egl.NONE };
-            HandleAsEGLContext = Egl.CreateContext(window.Display, config, shared != null ? shared.HandleAsEGLContext : IntPtr.Zero, attrib_list);
-
-            MakeCurrent(window);
+            HandleAsEGLContext = Egl.CreateContext(window.Display, config, sharedContext != null ? (sharedContext as IGraphicsContextInternal).Context.Handle : IntPtr.Zero, attrib_list);
         }
 
         public EglContext(ContextHandle handle, EglWindowInfo window, IGraphicsContext sharedContext,
@@ -117,9 +124,16 @@ namespace OpenTK.Platform.Egl
             // trying to make the EglContext current on a non-EGL window will do,
             // nothing (the EglContext will remain current on the previous EGL window
             // or the window it was constructed on (which may not be EGL)).
-            if (window is EglWindowInfo)
-                WindowInfo = (EglWindowInfo)window;
-            Egl.MakeCurrent(WindowInfo.Display, WindowInfo.Surface, WindowInfo.Surface, HandleAsEGLContext);
+            if (window != null)
+            {
+                if (window is EglWindowInfo)
+                    WindowInfo = (EglWindowInfo) window;
+                Egl.MakeCurrent(WindowInfo.Display, WindowInfo.Surface, WindowInfo.Surface, HandleAsEGLContext);
+            }
+            else
+            {
+                Egl.MakeCurrent(WindowInfo.Display, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            }
         }
 
         public override bool IsCurrent
@@ -188,7 +202,8 @@ namespace OpenTK.Platform.Egl
             {
                 if (manual)
                 {
-                    Egl.MakeCurrent(WindowInfo.Display, WindowInfo.Surface, WindowInfo.Surface, IntPtr.Zero);
+                    if (IsCurrent)
+                        Egl.MakeCurrent(WindowInfo.Display, WindowInfo.Surface, WindowInfo.Surface, IntPtr.Zero);
                     Egl.DestroyContext(WindowInfo.Display, HandleAsEGLContext);
                 }
                 IsDisposed = true;

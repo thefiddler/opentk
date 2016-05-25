@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
+
 namespace OpenTK
 {
     /// <summary>
@@ -1118,7 +1119,7 @@ namespace OpenTK
         /// <param name="vec">The vector to transform</param>
         /// <param name="mat">The desired transformation</param>
         /// <returns>The transformed vector</returns>
-        public static Vector3 Transform(Vector3 vec, Matrix4 mat)
+        public static Vector3 Transform(Vector3 vec, Matrix3 mat)
         {
             Vector3 result;
             Transform(ref vec, ref mat, out result);
@@ -1129,11 +1130,12 @@ namespace OpenTK
         /// <param name="vec">The vector to transform</param>
         /// <param name="mat">The desired transformation</param>
         /// <param name="result">The transformed vector</param>
-        public static void Transform(ref Vector3 vec, ref Matrix4 mat, out Vector3 result)
+        public static void Transform(ref Vector3 vec, ref Matrix3 mat, out Vector3 result)
         {
-            Vector4 v4 = new Vector4(vec.X, vec.Y, vec.Z, 1.0f);
-            Vector4.Transform(ref v4, ref mat, out v4);
-            result = v4.Xyz;
+            result = new Vector3(
+                vec.X * mat.Row0.X + vec.Y * mat.Row1.X + vec.Z * mat.Row2.X,
+                vec.X * mat.Row0.Y + vec.Y * mat.Row1.Y + vec.Z * mat.Row2.Y,
+                vec.X * mat.Row0.Z + vec.Y * mat.Row1.Z + vec.Z * mat.Row2.Z);
         }
 
         /// <summary>
@@ -1166,6 +1168,28 @@ namespace OpenTK
             Vector3.Cross(ref xyz, ref temp, out temp);
             Vector3.Multiply(ref temp, 2, out temp);
             Vector3.Add(ref vec, ref temp, out result);
+        }
+
+        /// <summary>Transform a Vector by the given Matrix using right-handed notation</summary>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="vec">The vector to transform</param>
+        public static Vector3 Transform(Matrix3 mat, Vector3 vec)
+        {
+            Vector3 result;
+            Transform(ref vec, ref mat, out result);
+            return result;
+        }
+
+        /// <summary>Transform a Vector by the given Matrix using right-handed notation</summary>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="vec">The vector to transform</param>
+        /// <param name="result">The transformed vector</param>
+        public static void Transform(ref Matrix3 mat, ref Vector3 vec, out Vector3 result)
+        {
+            result = new Vector3(
+                mat.Row0.X * vec.X + mat.Row0.Y * vec.Y + mat.Row0.Z * vec.Z,
+                mat.Row1.X * vec.X + mat.Row1.Y * vec.Y + mat.Row1.Z * vec.Z,
+                mat.Row2.X * vec.X + mat.Row2.Y * vec.Y + mat.Row2.Z * vec.Z);
         }
 
         /// <summary>Transform a Vector3 by the given Matrix, and project the resulting Vector4 back to a Vector3</summary>
@@ -1205,7 +1229,9 @@ namespace OpenTK
         /// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
         public static float CalculateAngle(Vector3 first, Vector3 second)
         {
-            return (float)System.Math.Acos((Vector3.Dot(first, second)) / (first.Length * second.Length));
+            float result;
+            CalculateAngle(ref first, ref second, out result);
+            return result;
         }
 
         /// <summary>Calculates the angle (in radians) between two vectors.</summary>
@@ -1217,7 +1243,121 @@ namespace OpenTK
         {
             float temp;
             Vector3.Dot(ref first, ref second, out temp);
-            result = (float)System.Math.Acos(temp / (first.Length * second.Length));
+            result = (float)System.Math.Acos(MathHelper.Clamp(temp / (first.Length * second.Length), -1.0, 1.0));
+        }
+
+        #endregion
+
+        #region Project
+
+        /// <summary>
+        /// Projects a vector from object space into screen space.
+        /// </summary>
+        /// <param name="vector">The vector to project.</param>
+        /// <param name="x">The X coordinate of the viewport.</param>
+        /// <param name="y">The Y coordinate of the viewport.</param>
+        /// <param name="width">The width of the viewport.</param>
+        /// <param name="height">The height of the viewport.</param>
+        /// <param name="minZ">The minimum depth of the viewport.</param>
+        /// <param name="maxZ">The maximum depth of the viewport.</param>
+        /// <param name="worldViewProjection">The world-view-projection matrix.</param>
+        /// <returns>The vector in screen space.</returns>
+        /// <remarks>
+        /// To project to normalized device coordinates (NDC) use the following parameters:
+        /// Project(vector, -1, -1, 2, 2, -1, 1, worldViewProjection).
+        /// </remarks>
+        public static Vector3 Project(Vector3 vector, float x, float y, float width, float height, float minZ, float maxZ, Matrix4 worldViewProjection)
+        {
+            Vector4 result;
+
+            result.X = 
+                vector.X * worldViewProjection.M11 + 
+                vector.Y * worldViewProjection.M21 + 
+                vector.Z * worldViewProjection.M31 + 
+                worldViewProjection.M41;
+
+            result.Y =
+                vector.X * worldViewProjection.M12 +
+                vector.Y * worldViewProjection.M22 +
+                vector.Z * worldViewProjection.M32 +
+                worldViewProjection.M42;
+
+            result.Z =
+                vector.X * worldViewProjection.M13 +
+                vector.Y * worldViewProjection.M23 +
+                vector.Z * worldViewProjection.M33 +
+                worldViewProjection.M43;
+
+            result.W =
+                vector.X * worldViewProjection.M14 +
+                vector.Y * worldViewProjection.M24 +
+                vector.Z * worldViewProjection.M34 +
+                worldViewProjection.M44;
+
+            result /= result.W;
+
+            result.X = x + (width * ((result.X + 1.0f) / 2.0f));
+            result.Y = y + (height * ((result.Y + 1.0f) / 2.0f));
+            result.Z = minZ + ((maxZ - minZ) * ((result.Z + 1.0f) / 2.0f));
+
+            return new Vector3(result.X, result.Y, result.Z);
+        }
+
+        #endregion
+
+        #region Unproject
+
+        /// <summary>
+        /// Projects a vector from screen space into object space.
+        /// </summary>
+        /// <param name="vector">The vector to project.</param>
+        /// <param name="x">The X coordinate of the viewport.</param>
+        /// <param name="y">The Y coordinate of the viewport.</param>
+        /// <param name="width">The width of the viewport.</param>
+        /// <param name="height">The height of the viewport.</param>
+        /// <param name="minZ">The minimum depth of the viewport.</param>
+        /// <param name="maxZ">The maximum depth of the viewport.</param>
+        /// <param name="worldViewProjection">The inverse of the world-view-projection matrix.</param>
+        /// <returns>The vector in object space.</returns>
+        /// <remarks>
+        /// To project from normalized device coordinates (NDC) use the following parameters:
+        /// Project(vector, -1, -1, 2, 2, -1, 1, inverseWorldViewProjection).
+        /// </remarks>
+        public static Vector3 Unproject(Vector3 vector, float x, float y, float width, float height, float minZ, float maxZ, Matrix4 inverseWorldViewProjection)
+        {
+            Vector4 result;
+
+            result.X = ((((vector.X - x) / width) * 2.0f) - 1.0f);
+            result.Y = ((((vector.Y - y) / height) * 2.0f) - 1.0f);
+            result.Z = (((vector.Z / (maxZ - minZ)) * 2.0f) - 1.0f);
+
+            result.X =
+                result.X * inverseWorldViewProjection.M11 +
+                result.Y * inverseWorldViewProjection.M21 +
+                result.Z * inverseWorldViewProjection.M31 +
+                inverseWorldViewProjection.M41;
+
+            result.Y =
+                result.X * inverseWorldViewProjection.M12 +
+                result.Y * inverseWorldViewProjection.M22 +
+                result.Z * inverseWorldViewProjection.M32 +
+                inverseWorldViewProjection.M42;
+
+            result.Z =
+                result.X * inverseWorldViewProjection.M13 +
+                result.Y * inverseWorldViewProjection.M23 +
+                result.Z * inverseWorldViewProjection.M33 +
+                inverseWorldViewProjection.M43;
+
+            result.W =
+                result.X * inverseWorldViewProjection.M14 +
+                result.Y * inverseWorldViewProjection.M24 +
+                result.Z * inverseWorldViewProjection.M34 +
+                inverseWorldViewProjection.M44;
+
+            result /= result.W;
+
+            return new Vector3(result.X, result.Y, result.Z);
         }
 
         #endregion
@@ -1386,7 +1526,46 @@ namespace OpenTK
             vec.Z *= scale.Z;
             return vec;
         }
-		
+
+        /// <summary>
+        /// Transform a Vector by the given Matrix.
+        /// </summary>
+        /// <param name="vec">The vector to transform</param>
+        /// <param name="mat">The desired transformation</param>
+        /// <returns>The transformed vector</returns>
+        public static Vector3 operator *(Vector3 vec, Matrix3 mat)
+        {
+            Vector3 result;
+            Vector3.Transform(ref vec, ref mat, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Transform a Vector by the given Matrix using right-handed notation
+        /// </summary>
+        /// <param name="mat">The desired transformation</param>
+        /// <param name="vec">The vector to transform</param>
+        /// <returns>The transformed vector</returns>
+        public static Vector3 operator *(Matrix3 mat, Vector3 vec)
+        {
+            Vector3 result;
+            Vector3.Transform(ref mat, ref vec, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Transforms a vector by a quaternion rotation.
+        /// </summary>
+        /// <param name="vec">The vector to transform.</param>
+        /// <param name="quat">The quaternion to rotate the vector by.</param>
+        /// <returns></returns>
+        public static Vector3 operator *(Quaternion quat, Vector3 vec)
+        {
+            Vector3 result;
+            Vector3.Transform(ref vec, ref quat, out result);
+            return result;
+        }
+
         /// <summary>
         /// Divides an instance by a scalar.
         /// </summary>
@@ -1450,7 +1629,13 @@ namespace OpenTK
         /// <returns>A System.Int32 containing the unique hashcode for this instance.</returns>
         public override int GetHashCode()
         {
-            return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode();
+            unchecked
+            {
+                var hashCode = this.X.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Y.GetHashCode();
+                hashCode = (hashCode * 397) ^ this.Z.GetHashCode();
+                return hashCode;
+            }
         }
 
         #endregion

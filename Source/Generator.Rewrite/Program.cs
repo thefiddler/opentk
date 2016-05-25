@@ -65,7 +65,7 @@ namespace OpenTK.Rewrite
             var read_params = new ReaderParameters();
             var write_params = new WriterParameters();
             var pdb = Path.ChangeExtension(file, "pdb");
-            var mdb = Path.ChangeExtension(file, "mdb");
+            var mdb = file + ".mdb";
             ISymbolReaderProvider provider = null;
             if (File.Exists(pdb))
             {
@@ -82,7 +82,7 @@ namespace OpenTK.Rewrite
             if (!String.IsNullOrEmpty(keyfile) && File.Exists(keyfile))
             {
                 keyfile = Path.GetFullPath(keyfile);
-                var fs = new FileStream(keyfile, FileMode.Open);
+                var fs = new FileStream(keyfile, FileMode.Open, FileAccess.Read);
                 var keypair = new System.Reflection.StrongNameKeyPair(fs);
                 fs.Close();
                 write_params.StrongNameKeyPair = keypair;

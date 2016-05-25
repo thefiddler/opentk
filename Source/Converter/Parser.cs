@@ -26,7 +26,7 @@ using System.IO;
 using System.Net;
 using System.Xml.Linq;
 
-namespace CHeaderToXML
+namespace OpenTK.Convert
 {
     // The base class for a parser.
     abstract class Parser
@@ -49,7 +49,27 @@ namespace CHeaderToXML
                 using (var wb = new WebClient())
                 {
                     string filename = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-                    wb.DownloadFile(path, filename);
+
+                    try
+                    {
+                        wb.DownloadFile(path, filename);
+                    }
+                    catch (WebException e)
+                    {
+                        if (e.Message == "The remote server returned an error: (401) Unauthorized.")
+                        {
+                            System.Console.WriteLine(e.Message);
+                            System.Console.Write("Username: ");
+                            string username = System.Console.ReadLine();
+                            System.Console.Write("Password: ");
+                            string password = System.Console.ReadLine();
+
+                            wb.UseDefaultCredentials = true;
+                            wb.Credentials = new NetworkCredential(username, password);
+                            wb.DownloadFile(path, filename);
+                        }
+                    }
+
                     contents = File.ReadAllLines(filename);
                     File.Delete(filename);
                 }

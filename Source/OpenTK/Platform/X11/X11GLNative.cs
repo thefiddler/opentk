@@ -116,6 +116,7 @@ namespace OpenTK.Platform.X11
         // back, reset window to these.s
         WindowBorder _previous_window_border;
         Size _previous_window_size;
+        OpenTK.WindowState _previous_window_state = OpenTK.WindowState.Normal;
 
         MouseCursor cursor = MouseCursor.Default;
         IntPtr cursorHandle;
@@ -1072,11 +1073,25 @@ namespace OpenTK.Platform.X11
             }
             set
             {
+                bool is_size_changed = client_rectangle.Size != value;
+
+                int width = value.Width;
+                int height = value.Height;
+
+                if (WindowBorder != WindowBorder.Resizable)
+                {
+                    SetWindowMinMax(width, height, width, height);
+                }
+
                 using (new XLock(window.Display))
                 {
-                    Functions.XResizeWindow(window.Display, window.Handle,
-                        value.Width, value.Height);
+                    if (is_size_changed)
+                    {
+                        Functions.XResizeWindow(window.Display, window.Handle,
+                            width, height);
+                    }
                 }
+
                 ProcessEvents();
             }
         }
@@ -1267,6 +1282,8 @@ namespace OpenTK.Platform.X11
                 // ProcessEvents.
                 ChangeWindowState(value);
                 ProcessEvents();
+
+                _previous_window_state = (value == OpenTK.WindowState.Fullscreen) ? OpenTK.WindowState.Fullscreen : OpenTK.WindowState.Normal;
             }
         }
 
@@ -1466,7 +1483,7 @@ namespace OpenTK.Platform.X11
             get { return cursor_visible; }
             set
             {
-                if (value)
+                if (value && !cursor_visible)
                 {
                     using (new XLock(window.Display))
                     {
@@ -1481,7 +1498,7 @@ namespace OpenTK.Platform.X11
                         cursor_visible = true;
                     }
                 }
-                else
+                else if(!value && cursor_visible)
                 {
                     using (new XLock(window.Display))
                     {
@@ -1597,6 +1614,8 @@ namespace OpenTK.Platform.X11
                     {
                         Functions.XMapWindow(window.Display, window.Handle);
                     }
+
+                    this.WindowState = _previous_window_state;
                 }
                 else if (!value && visible)
                 {
@@ -1604,6 +1623,8 @@ namespace OpenTK.Platform.X11
                     {
                         Functions.XUnmapWindow(window.Display, window.Handle);
                     }
+
+                    _previous_window_state = (this.WindowState == OpenTK.WindowState.Fullscreen) ? OpenTK.WindowState.Fullscreen : OpenTK.WindowState.Normal;
                 }
             }
         }

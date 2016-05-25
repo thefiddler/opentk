@@ -34,7 +34,7 @@ namespace Build.UpdateVersion
     class Program
     {
         const string Major = "1";
-        const string Minor = "1";
+        const string Minor = "2";
 
         static string RootDirectory;
         static string SourceDirectory;
@@ -69,7 +69,7 @@ namespace Build.UpdateVersion
             string minor = Minor;
 
             // Version is defined as {Major}.{Minor}.{Build}.{Revision}
-            string version = String.Format("{0}.{1}.{2}.{3}", major, minor, build, revision);
+            string version = String.Format("{0}.{1}.{2}.{3}-pre", major, minor, build, revision);
 
             Console.WriteLine("API compatibility key: {0}.{1}", major, minor);
             Console.WriteLine("Build date: {0}", timestamp);
